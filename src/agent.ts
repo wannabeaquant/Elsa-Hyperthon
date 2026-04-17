@@ -209,7 +209,17 @@ Schema (write ALL fields when updating):
   gas.ts is $0.001 — always worth it.
   WETH price is $0.002 — always worth it when gas is cheap.
   Token prices are $0.002 each — only when analytics or position warrants it.
-  quote + swap = $0.11 — only when you have ≥ 3 buy signals.`;
+  quote + swap = $0.11 — only when you have ≥ 3 buy signals.
+
+━━━ DRY RUN MODE (DRY_RUN=true) ━━━━━━━━━━━━━━━━━━━━━━━━━━
+  swap.ts will NOT hit the API and costs $0.00 — it returns a simulated
+  result immediately. When you receive { "dry_run": true, "simulated": true }
+  from swap.ts you MUST still:
+    1. Get a quote first (quote.ts, $0.01) so you have a realistic to_amount
+    2. Write the trade to memory.json exactly as a real trade, but with
+       "dry_run": true and to_amount from the quote result
+    3. This keeps memory honest and useful for when live trading resumes
+  Do NOT skip the memory write just because the swap was simulated.`;
 
 // ── Helper detection with context ─────────────────────────────────────────────
 
