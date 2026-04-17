@@ -179,6 +179,19 @@ export const display = {
     }
     const d = data as Record<string, unknown>;
 
+    // Conviction strength header (if available from signal analysis)
+    const convictionLevels = (d.conviction_levels as Record<string, string> | undefined) ?? {};
+    if (Object.keys(convictionLevels).length > 0) {
+      console.log(`${ts()} ${chalk.bold.blue("🎯 Conviction Levels:")}`);
+      for (const [token, level] of Object.entries(convictionLevels)) {
+        const levelColor =
+          level === "high" ? chalk.bold.green(level) :
+          level === "medium" ? chalk.bold.yellow(level) :
+          chalk.dim(level);
+        console.log(`${ts()} ${chalk.dim("   " + token + ":")} ${levelColor}`);
+      }
+    }
+
     // Signals — the most important output
     const signals = (d.signals as string[] | undefined) ?? [];
     if (signals.length) {
@@ -186,6 +199,7 @@ export const display = {
       for (const s of signals) {
         const icon =
           s.includes("STRONG BUY") || s.includes("🔥") ? chalk.bold.green("  ▶") :
+          s.includes("HIGH CONVICTION") ? chalk.bold.green("  ▶") :
           s.includes("BUY SIGNAL") || s.includes("✅") ? chalk.green("  ▶") :
           s.includes("TAKE PROFIT") || s.includes("💰") ? chalk.bold.yellow("  ▶") :
           s.includes("STOP LOSS") || s.includes("🛑")  ? chalk.bold.red("  ▶") :
