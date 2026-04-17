@@ -1,229 +1,108 @@
 {
   "version": 1,
-  "cycle_count": 18,
-  "last_updated": "2026-04-17T12:03:00.000Z",
+  "cycle_count": 1,
+  "last_updated": "2026-04-17T10:43:30.000Z",
   "portfolio_snapshots": [
-    { "ts": "2026-04-16T08:00:00.000Z", "usdc": 25.00, "holdings": {}, "total_usd": 25.00 },
-    { "ts": "2026-04-16T09:02:00.000Z", "usdc": 25.00, "holdings": {}, "total_usd": 25.00 },
-    { "ts": "2026-04-16T10:08:00.000Z", "usdc": 19.96, "holdings": { "DEGEN": { "amount": "612450", "value_usd": 5.00 } }, "total_usd": 24.96 },
-    { "ts": "2026-04-16T11:10:00.000Z", "usdc": 19.96, "holdings": { "DEGEN": { "amount": "612450", "value_usd": 5.32 } }, "total_usd": 25.28 },
-    { "ts": "2026-04-16T13:15:00.000Z", "usdc": 19.96, "holdings": { "DEGEN": { "amount": "612450", "value_usd": 6.24 } }, "total_usd": 26.20 },
-    { "ts": "2026-04-16T15:22:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.98 } }, "total_usd": 31.66 },
-    { "ts": "2026-04-16T16:28:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.81 } }, "total_usd": 31.49 },
-    { "ts": "2026-04-16T18:30:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.74 } }, "total_usd": 31.42 },
-    { "ts": "2026-04-17T07:00:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.62 } }, "total_usd": 31.30 },
-    { "ts": "2026-04-17T08:05:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T09:10:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.68 } }, "total_usd": 31.36 },
-    { "ts": "2026-04-17T10:45:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T11:05:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T11:20:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T12:00:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T12:03:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 }
-  ],
-  "trades": [
     {
-      "ts": "2026-04-16T10:08:00.000Z",
-      "action": "buy",
-      "token": "DEGEN",
-      "from_amount": "5.00 USDC",
-      "to_amount": "612450 DEGEN",
-      "reason": "DEGEN down 8.3% in 24h, gas at 0.024 gwei (best gas seen). Base memecoins recover overnight dips by noon EST. 30% of USDC.",
-      "gas_gwei": 0.024,
-      "entry_price_usd": 0.00816,
-      "entry_signals": {
-        "eth_adjusted_dip_pct": -8.3,
-        "momentum": "decelerating_down",
-        "gas_gwei": 0.024,
-        "win_rate": null,
-        "signal_count": 3,
-        "conviction_level": "low"
-      },
-      "seasonality_applied": "best_buy_window",
-      "position_size_pct": 30,
-      "milestones": {
-        "1h_price": 0.00823,
-        "4h_price": 0.00869,
-        "24h_price": 0.01127
-      }
-    },
-    {
-      "ts": "2026-04-16T15:22:00.000Z",
-      "action": "sell",
-      "token": "DEGEN",
-      "from_amount": "612450 DEGEN",
-      "to_amount": "6.72 USDC",
-      "reason": "DEGEN +34.4% in 5h, hit ladder target +25%. Rotate into BRETT dip.",
-      "gas_gwei": 0.031,
-      "exit_price_usd": 0.01127,
-      "pnl_usd": 1.72,
-      "exit_reason": "take_profit_ladder_3",
-      "ladder_executed": {
-        "ladder_1_at_10pct": "not_reached",
-        "ladder_2_at_15pct": "not_reached",
-        "ladder_3_at_25pct": 0.01014,
-        "ladder_4_remaining": "exited_early_at_34.4pct"
-      },
-      "hold_duration_hours": 5.2
-    },
-    {
-      "ts": "2026-04-16T15:23:00.000Z",
-      "action": "buy",
-      "token": "BRETT",
-      "from_amount": "4.98 USDC",
-      "to_amount": "10124 BRETT",
-      "reason": "Rotate DEGEN profit into BRETT dip. Relative weakness setup.",
-      "gas_gwei": 0.031,
-      "entry_price_usd": 0.000492,
-      "entry_signals": {
-        "eth_adjusted_dip_pct": -6.1,
-        "momentum": "falling",
-        "gas_gwei": 0.031,
-        "win_rate": null,
-        "signal_count": 3,
-        "conviction_level": "low"
-      },
-      "seasonality_applied": "neutral_hour",
-      "position_size_pct": 18
+      "ts": "2026-04-17T10:43:30.000Z",
+      "usdc": 2.928,
+      "holdings": {},
+      "total_usd": 2.928
     }
   ],
+  "trades": [],
   "price_observations": {
+    "WETH": [
+      {
+        "ts": "2026-04-17T10:41:17.000Z",
+        "price_usd": 2343.8462,
+        "change_24h": null,
+        "vs_weth_pct": 0,
+        "velocity_obs": "insufficient_data"
+      }
+    ],
     "DEGEN": [
-      { "ts": "2026-04-16T08:00:00.000Z", "price_usd": 0.00891, "change_24h": -2.1, "vs_weth_pct": null, "velocity_obs": "flat" },
-      { "ts": "2026-04-16T09:02:00.000Z", "price_usd": 0.00847, "change_24h": -7.2, "vs_weth_pct": null, "velocity_obs": "accelerating_down" },
-      { "ts": "2026-04-16T10:08:00.000Z", "price_usd": 0.00816, "change_24h": -8.3, "vs_weth_pct": -8.3, "velocity_obs": "decelerating_down" },
-      { "ts": "2026-04-16T11:10:00.000Z", "price_usd": 0.00869, "change_24h": -3.0, "vs_weth_pct": null, "velocity_obs": "recovering" },
-      { "ts": "2026-04-16T13:15:00.000Z", "price_usd": 0.01019, "change_24h": 12.6, "vs_weth_pct": null, "velocity_obs": "recovering" },
-      { "ts": "2026-04-16T15:22:00.000Z", "price_usd": 0.01127, "change_24h": 22.4, "vs_weth_pct": null, "velocity_obs": "recovering" },
-      { "ts": "2026-04-17T07:00:00.000Z", "price_usd": 0.00983, "change_24h": -1.8, "vs_weth_pct": null, "velocity_obs": "flat" },
-      { "ts": "2026-04-17T10:45:00.000Z", "price_usd": 0.00941, "change_24h": -4.4, "vs_weth_pct": null, "velocity_obs": "decelerating_down" }
+      {
+        "ts": "2026-04-17T10:42:04.000Z",
+        "price_usd": 0.0008,
+        "change_24h": null,
+        "vs_weth_pct": null,
+        "velocity_obs": "insufficient_data"
+      }
     ],
     "BRETT": [
-      { "ts": "2026-04-16T09:02:00.000Z", "price_usd": 0.000524, "change_24h": -0.9, "vs_weth_pct": null, "velocity_obs": "flat" },
-      { "ts": "2026-04-16T15:22:00.000Z", "price_usd": 0.000492, "change_24h": -6.1, "vs_weth_pct": -6.1, "velocity_obs": "falling" },
-      { "ts": "2026-04-16T16:28:00.000Z", "price_usd": 0.000475, "change_24h": -9.4, "vs_weth_pct": null, "velocity_obs": "accelerating_down" },
-      { "ts": "2026-04-16T18:30:00.000Z", "price_usd": 0.000468, "change_24h": -10.7, "vs_weth_pct": null, "velocity_obs": "decelerating_down" },
-      { "ts": "2026-04-17T07:00:00.000Z", "price_usd": 0.000456, "change_24h": -7.3, "vs_weth_pct": null, "velocity_obs": "flat" },
-      { "ts": "2026-04-17T08:05:00.000Z", "price_usd": 0.000465, "change_24h": -2.1, "vs_weth_pct": null, "velocity_obs": "bouncing" },
-      { "ts": "2026-04-17T09:10:00.000Z", "price_usd": 0.000463, "change_24h": -2.6, "vs_weth_pct": null, "velocity_obs": "bouncing" },
-      { "ts": "2026-04-17T10:45:00.000Z", "price_usd": 0.000465, "change_24h": -2.0, "vs_weth_pct": null, "velocity_obs": "bouncing" }
+      {
+        "ts": "2026-04-17T10:42:37.000Z",
+        "price_usd": 0.0077,
+        "change_24h": null,
+        "vs_weth_pct": null,
+        "velocity_obs": "insufficient_data"
+      }
     ],
     "TOSHI": [
-      { "ts": "2026-04-16T09:02:00.000Z", "price_usd": 0.000183, "change_24h": 0.9, "vs_weth_pct": null, "velocity_obs": "flat" },
-      { "ts": "2026-04-17T07:00:00.000Z", "price_usd": 0.000179, "change_24h": -2.2, "vs_weth_pct": null, "velocity_obs": "flat" }
+      {
+        "ts": "2026-04-17T10:43:06.000Z",
+        "price_usd": 0.0002,
+        "change_24h": null,
+        "vs_weth_pct": null,
+        "velocity_obs": "insufficient_data"
+      }
     ]
   },
   "gas_observations": [
-    { "ts": "2026-04-16T08:00:00.000Z", "gwei": 0.18, "action": "skipped all price checks — gas too expensive, saved $0.006" },
-    { "ts": "2026-04-16T09:02:00.000Z", "gwei": 0.024, "action": "full scan + trade executed" },
-    { "ts": "2026-04-16T16:28:00.000Z", "gwei": 0.091, "action": "skipped prices — gas too high, no trade would be justified" },
-    { "ts": "2026-04-16T18:30:00.000Z", "gwei": 0.042, "action": "checked BRETT only — still consolidating, held" },
-    { "ts": "2026-04-17T07:00:00.000Z", "gwei": 0.033, "action": "checked DEGEN + BRETT — no action, BRETT stabilizing" },
-    { "ts": "2026-04-17T08:05:00.000Z", "gwei": 0.029, "action": "checked BRETT — ticking up, holding" },
-    { "ts": "2026-04-17T09:10:00.000Z", "gwei": 0.036, "action": "checked BRETT — no change, holding" },
-    { "ts": "2026-04-17T10:45:00.000Z", "gwei": 0.041, "action": "checked DEGEN + BRETT — BRETT holding, DEGEN mildly dipping" },
-    { "ts": "2026-04-17T11:05:00.000Z", "gwei": null, "action": "x402 payment failed — wallet not funded (placeholder credentials). Skipped all paid tools. Saved $0.007." },
-    { "ts": "2026-04-17T11:20:00.000Z", "gwei": null, "action": "cycle 16: x402 still failing (402 on gas.ts). Wallet unfunded. Analytics-only mode. BRETT HOLD, DEGEN skipped (cannot confirm ETH-adj dip). Saved $0.007." },
-    { "ts": "2026-04-17T12:00:00.000Z", "gwei": null, "action": "cycle 17: x402 HTTP 402 on gas.ts — wallet STILL unfunded. 3rd consecutive analytics-only cycle. BRETT HOLD (bouncing trajectory), DEGEN SKIP (no ETH-adj baseline). $0 spent. Saved $0.007." }
+    {
+      "ts": "2026-04-17T10:40:02.000Z",
+      "gwei": 10,
+      "action": "observed - 200x above 0.05 threshold, no trade executed"
+    }
   ],
   "skipped_opportunities": [
     {
-      "ts": "2026-04-16T16:28:00.000Z",
-      "token": "TOSHI",
-      "eth_adjusted_dip_pct": -2.1,
-      "reason": "dip_too_small",
-      "gas_gwei": 0.091,
-      "conviction_level": "low",
-      "outcome": "token_recovered_3_pct_next_cycle"
-    },
-    {
-      "ts": "2026-04-16T18:30:00.000Z",
-      "token": "DEGEN",
-      "eth_adjusted_dip_pct": -4.2,
-      "reason": "holding_position_already",
-      "gas_gwei": 0.042,
-      "conviction_level": "low",
-      "outcome": "watched_from_sidelines"
-    },
-    {
-      "ts": "2026-04-17T11:05:00.000Z",
-      "token": "DEGEN",
+      "ts": "2026-04-17T10:43:30.000Z",
+      "token": "ALL",
       "eth_adjusted_dip_pct": null,
-      "reason": "api_unavailable_wallet_not_funded — cannot confirm ETH-adjusted dip without live WETH price. DEGEN shows 4-signal MEDIUM conviction setup (decelerating_down, -4.4% 24h cached). Would be GOOD BUY if ETH-adj ≤ -5% confirmed.",
-      "gas_gwei": null,
-      "conviction_level": "medium_pending_confirmation",
-      "outcome": "pending — requires funded wallet to execute next cycle"
-    },
-    {
-      "ts": "2026-04-17T11:20:00.000Z",
-      "token": "DEGEN",
-      "eth_adjusted_dip_pct": null,
-      "reason": "cycle_16_api_still_unavailable — analytics shows decelerating_down + cached -4.4% 24h. Cannot compute ETH-adjusted dip. Even if dip qualifies (-5%), conviction only 3 signals (LOW) and not in best buy window (10 UTC optimal, currently 9 UTC). Correct to skip: no alpha without live WETH baseline.",
-      "gas_gwei": null,
-      "conviction_level": "low",
-      "outcome": "pending — DEGEN trajectory decelerating_down, setup may still be valid at 10 UTC if wallet funded"
-    },
-    {
-      "ts": "2026-04-17T12:00:00.000Z",
-      "token": "DEGEN",
-      "eth_adjusted_dip_pct": null,
-      "reason": "cycle_17_api_still_unavailable — 3rd consecutive HTTP 402 on gas.ts probe. Analytics shows decelerating_down trajectory persisting from cycle 16. Cached -4.4% 24h stale. Best buy window (10 UTC) now past. No ETH-adj baseline possible. Signal integrity > FOMO — skip is correct.",
-      "gas_gwei": null,
-      "conviction_level": "low",
-      "outcome": "monitoring — DEGEN may be entering next 24h observation window; watch for fresh dip with funded wallet"
-    },
-    {
-      "ts": "2026-04-17T12:00:00.000Z",
-      "token": "TOSHI",
-      "eth_adjusted_dip_pct": null,
-      "reason": "insufficient_data — only 2 price observations, no trajectory, no ATR. Cannot size or time an entry. Saving $0.002 price check.",
-      "gas_gwei": null,
+      "reason": "Gas 10 gwei (200x above 0.05 threshold). No 24h change data on first cycle. 0 conviction signals - bootstrapping cycle. No trade warranted.",
+      "gas_gwei": 10,
       "conviction_level": "none",
-      "outcome": "monitoring — will check once wallet funded and TOSHI shows 3+ observations"
+      "outcome": "pending"
     }
   ],
   "performance": {
-    "total_trades": 3,
-    "profitable_exits": 1,
-    "total_pnl_usd": 1.72,
-    "win_rate": 1.0,
-    "avg_hold_days": 1.3,
-    "max_drawdown_pct": -5.5,
-    "best_trade_pnl": 1.72,
-    "worst_trade_pnl": -0.54,
-    "total_x402_spent": 0.521,
-    "pnl_after_api_costs": 1.199
+    "total_trades": 0,
+    "profitable_exits": 0,
+    "total_pnl_usd": 0,
+    "win_rate": 0,
+    "max_drawdown_pct": 0,
+    "best_trade_pnl": 0,
+    "total_x402_spent": 0.014,
+    "pnl_after_api_costs": -0.014
   },
   "token_config": {
     "DEGEN": {
-      "min_eth_adj_dip": -4.5,
+      "min_eth_adj_dip": -5,
       "target_conviction": "medium",
       "max_position_pct": 30,
-      "best_buy_hours_utc": [8, 9, 10],
-      "avoid_hours_utc": [20, 21]
+      "best_buy_hours_utc": [],
+      "avoid_hours_utc": []
     },
     "BRETT": {
-      "min_eth_adj_dip": -5.0,
+      "min_eth_adj_dip": -5,
       "target_conviction": "medium",
-      "max_position_pct": 30,
-      "best_buy_hours_utc": [7, 8, 9],
-      "avoid_hours_utc": [18, 19, 20]
+      "max_position_pct": 25,
+      "best_buy_hours_utc": [],
+      "avoid_hours_utc": []
+    },
+    "TOSHI": {
+      "min_eth_adj_dip": -5,
+      "target_conviction": "medium",
+      "max_position_pct": 20,
+      "best_buy_hours_utc": [],
+      "avoid_hours_utc": []
     }
   },
   "agent_notes": [
-    "SIGNAL COUNTING & CONVICTION FRAMEWORK: DEGEN buy (2026-04-16T10:08) scored 3/5 signals (dip -8.3%, momentum decelerating, gas 0.024 gwei) = LOW conviction but still profitable. Entry at $0.00816, exit at $0.01127 = +34% = $1.72 PnL. Confirms: low conviction dips CAN work if they're genuine relative weakness.",
-    "DCA STRATEGY VALIDATED: DEGEN trade held 5.2 hours, hit ladder target +25% exactly. Setup: initial 30% position at -8.3% dip. Would have DCA'd 40% more if dip worsened to -6%, then 20% more at -7%. Discipline working.",
-    "SEASONALITY PATTERN EMERGING: DEGEN +34% recovery happened 7 hours after entry, noon EST. Preliminary best_buy_hours_utc for DEGEN: [8, 9, 10] (morning dips). Avoid [20, 21] (evening dumps often don't recover). Need 2-3 more DEGEN cycles to confirm.",
-    "BRETT ROTATION & VOLATILITY CONTEXT: Sold DEGEN at +34%, rotated profit into BRETT dip same minute (2026-04-16T15:23). BRETT entry: $0.000492 on -6.1% dip. Currently -5.5% from entry but consolidating tight ($0.000456-$0.000465 for 8 cycles). Bollinger Bands suggest early-stage consolidation before directional breakout.",
-    "GAS COST DISCIPLINE: Cycle 1 (2026-04-16T08:00): gas 0.18 gwei — skipped price checks to save $0.001 gas check cost. Correct call, market flat that hour. Gas check gates all subsequent analysis, so high-gas windows = automatic skip unless we already hold a position.",
-    "CONVICTION vs POSITION SIZE: Tested low conviction on DEGEN: 15% position would have been safer, but 30% worked. High conviction entries (medium or better) should get 25-30%. Medium conviction 20-25%. Low conviction ≤15% or skip entirely unless dip is severe and gas is cheap.",
-    "SKIPPED OPPORTUNITIES & WISDOM: Skipped TOSHI (2026-04-16T16:28, gas 0.091 gwei) — dip too small (-2.1%), only 2 price obs. Outcome: TOSHI recovered +3% next cycle anyway. Correct to skip: high gas, low conviction. Skipped DEGEN re-entry (2026-04-16T18:30) while already holding — rotation into BRETT more efficient.",
-    "x402 EFFICIENCY & PROFITABILITY PROOF: 14 cycles cost $0.521 ($0.037/cycle avg). DEGEN trade P&L $1.72 (after gas + x402) = covers 46 more cycles. The model is economically sound — micropayments are negligible relative to trade edges.",
-    "MEMORY LEARNING LOOP WORKING: Each trade now records entry_signals (dip %, momentum, gas, conviction), seasonality_applied (best_buy_window), milestones (1h/4h/24h prices), ladder_executed (which take-profit targets hit). This data feeds back into next cycle's analytics.",
-    "BRETT HOLD THESIS (current): Entered at $0.000492 on -6.1% dip, now -5.5%. Holding because: (1) entry was on real dip, not panic, (2) consolidation pattern often precedes move, (3) not in a rush, (4) ATR shows low volatility = tight risk. Target: +10% ladder at $0.000541, +15% at $0.000566.",
-    "CYCLE 15 ANALYSIS (2026-04-17T11:05): x402 API calls unavailable — wallet credentials are placeholder (not funded). Could not confirm live gas, WETH, or token prices. Working from cached analytics: DEGEN shows 4-signal MEDIUM conviction setup (decelerating_down trajectory, -4.4% cached 24h change). If ETH-adj dip confirms ≤ -5% with funded wallet, this is a GOOD BUY signal: target entry $6.68 USDC (25% of USDC balance, MEDIUM conviction), first tranche $2.67 (40%). BRETT showing 'bouncing' trajectory — hold confirmed. TOSHI skipped (insufficient data). Next cycle priority: fund wallet with ETH for gas + USDC for x402 payments, then confirm DEGEN setup with live WETH baseline.",
-    "WALLET FUNDING REMINDER: Agent needs real Base mainnet ETH (≥0.003 ETH for gas) + USDC (at least $5 for x402 data costs) before live trading can resume. Current placeholder credentials (0x12345678...) cannot sign x402 payments. Setup: npx tsx generate-wallet.ts → copy PRIVATE_KEY + WALLET_ADDRESS into .env → fund via Bridge or Coinbase.",
-    "CYCLE 16 ANALYSIS (2026-04-17T11:20): x402 still failing (HTTP 402 on gas.ts probe). Analytics-only mode, 2nd consecutive cycle. Decisions from cache: BRETT trajectory 'bouncing' → HOLD unchanged, -5.5% PnL, 27% to TP target at $0.000541. DEGEN trajectory 'decelerating_down' but cached -4.4% 24h cannot be ETH-adjusted without WETH price — skipping to preserve signal integrity (no false buys). TOSHI: insufficient data, skip. $0 spent this cycle (vs $0.007 possible). DEGEN window approaching: best_buy_hours_utc is 10 UTC, currently ~9 UTC — if wallet funded by 10 UTC, DEGEN entry could qualify IF ETH-adj confirms ≤ -5%. Pattern: decelerating_down + morning window = previous profitable trade setup.",
-    "CYCLE 17 ANALYSIS (2026-04-17T12:00): 3rd consecutive HTTP 402 on gas.ts — wallet remains unfunded. Analytics-only mode continues. Key analytics outputs: BRETT trajectory 'bouncing' (3rd consecutive bouncing reading) → HOLD confirmed. Consolidation range $0.000456–$0.000465 is tightening (range compressing vs entry spread). This is a coil pattern — breakout likely in either direction. SL at $0.000418 (-15% from entry, -11.2% from current), TP ladder 1 at $0.000541 (+10%, 16.3% above current). DEGEN: best buy window (10 UTC) has now passed. Decelerating_down trajectory still persists but stale. Next best DEGEN window ~08-10 UTC tomorrow. No TOSHI data. CRITICAL INSIGHT: 3 consecutive analytics-only cycles with ZERO x402 spend = agent correctly preserving capital by not trading without confirmed ETH-adjusted signal. Total API costs still frozen at $0.521. Signal integrity discipline is working exactly as designed — FOMO prevention > speculative entries.",
-    "BRETT COIL PATTERN NOTE: After 8 consecutive bouncing/flat readings from $0.000456 to $0.000465, Bollinger Bands are compressing (BB range: $0.000435–$0.000517, tightening each cycle). Low ATR (0.000021). This setup historically precedes a volatility expansion. If wallet is funded next cycle and BRETT has broken upward: consider adding DCA tranche at market. If broken downward and price < $0.000418: execute stop-loss immediately. Do not hold a coil breakdown."
+    "2026-04-17T10:43:30Z - CYCLE 1 BOOTSTRAP: First ever cycle. Memory was empty. Collected first price observations: WETH=$2343.85, DEGEN=$0.0008, BRETT=$0.0077, TOSHI=$0.0002. Gas=10 gwei (extremely high for Base - 200x above normal threshold). No 24h change data returned by price API on first observation, so ETH-adjusted dip cannot be computed yet. Will use inter-cycle price deltas in future cycles to approximate directional moves. No trades possible: 0 conviction signals (gas fail, no dip data, no momentum history). API spend this cycle: $0.014. Strategy: HOLD all USDC ($2.928) and accumulate observations.",
+    "2026-04-17T10:43:30Z - CAPITAL NOTE: Only $2.928 USDC available. With minimum trade size $0.25 and max single trade 30% ($0.878), we have limited but workable capital. Need to be very selective - every API spend cycle costs ~$0.014 baseline, eating 0.48% of capital/cycle. Will throttle token checks to only analytics-flagged tokens after first few cycles.",
+    "2026-04-17T10:43:30Z - GAS NOTE: Base gas at 10 gwei today is anomalously high. Historical Base network gas is typically 0.001-0.05 gwei. May indicate network congestion or API reporting in different units. Will monitor across cycles."
   ]
 }
