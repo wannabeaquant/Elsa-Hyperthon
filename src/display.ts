@@ -19,6 +19,7 @@ let _cyclePaid  = 0;
 let _sessionPaid = 0;
 let _startPortfolio  = 0;
 let _currentPortfolio = 0;
+let _lastWethChange: number | null = null;  // for ETH-adjusted dip computation
 
 // ── Smart result formatters per tool ─────────────────────────────────────────
 
@@ -43,12 +44,20 @@ function formatResult(name: string, data: Record<string, unknown>): string {
           ? chalk.green(`+${change.toFixed(2)}% 24h ↑`)
           : chalk.red(`${change.toFixed(2)}% 24h ↓`))
         : "";
-      const dipTag = change != null && change <= -5
+      // Compute ETH-adjusted dip if we have a stored WETH baseline
+      let adjStr = "";
+      if (change != null && _lastWethChange !== null) {
+        const adj = change - _lastWethChange;
+        adjStr = adj >= 0
+          ? chalk.dim(`  ETH-adj: ${adj >= 0 ? "+" : ""}${adj.toFixed(1)}%`)
+          : chalk.yellow(`  ETH-adj: ${adj.toFixed(1)}%`) + (adj <= -5 ? chalk.bold.yellow(" ← REAL DIP") : "");
+      }
+      const dipTag = change != null && change <= -5 && _lastWethChange === null
         ? chalk.bold.yellow("  ← DIP ALERT")
         : change != null && change >= 10
           ? chalk.bold.green("  ← RALLY")
           : "";
-      return `Price: ${chalk.bold.white(`$${price}`)}  ${changeStr}${dipTag}`;
+      return `Price: ${chalk.bold.white(`$${price}`)}  ${changeStr}${adjStr}${dipTag}`;
     }
     case "get_balances": {
       const usdc  = (data.usdc ?? data.USDC) as number | undefined;
@@ -111,6 +120,7 @@ export const display = {
     _cyclePaid = 0;
     _startPortfolio  = 0;
     _currentPortfolio = 0;
+    _lastWethChange   = null;
     console.log(
       `\n${ts()} ${chalk.yellow("⏳")} ` +
       chalk.bold(`Cycle #${cycleNum}`) +
@@ -138,14 +148,77 @@ export const display = {
     );
   },
 
-  paymentResult(name: string, data: unknown) {
+  paymentResult(name: string, data: unknown, isWeth = false) {
     const d = (typeof data === "object" && data !== null ? data : {}) as Record<string, unknown>;
+
+    // Capture WETH baseline for relative strength display on subsequent token price calls
+    if (name === "get_token_price" && isWeth) {
+      const wethChange = (d.change_24h ?? d.price_change_24h) as number | undefined;
+      if (wethChange != null) _lastWethChange = wethChange;
+    }
+
     const summary = formatResult(name, d);
-    console.log(`${ts()} ${chalk.green("✅")} Paid & verified  →  ${summary}`);
+    const label = isWeth ? chalk.dim("WETH baseline") : "";
+    console.log(`${ts()} ${chalk.green("✅")} Paid & verified  →  ${summary}${label ? "  " + label : ""}`);
   },
 
   paymentError(name: string, message: string) {
     console.log(`${ts()} ${chalk.red("❌")} ${chalk.bold(name)} failed: ${chalk.red(message)}`);
+  },
+
+  // ── Free analytics ────────────────────────────────────────────────────────
+
+  analyticsRun() {
+    console.log(`\n${ts()} ${chalk.bold.blue("🧮")} Running analytics... ${chalk.dim("(free — local computation, no x402)")}`);
+  },
+
+  analyticsResult(data: unknown) {
+    if (!data || typeof data !== "object") {
+      console.log(`${ts()} ${chalk.dim("   ✓ Analytics complete.")}`);
+      return;
+    }
+    const d = data as Record<string, unknown>;
+
+    // Signals — the most important output
+    const signals = (d.signals as string[] | undefined) ?? [];
+    if (signals.length) {
+      console.log(`${ts()} ${chalk.bold.blue("⚡ Signals:")}`);
+      for (const s of signals) {
+        const icon =
+          s.includes("STRONG BUY") || s.includes("🔥") ? chalk.bold.green("  ▶") :
+          s.includes("BUY SIGNAL") || s.includes("✅") ? chalk.green("  ▶") :
+          s.includes("TAKE PROFIT") || s.includes("💰") ? chalk.bold.yellow("  ▶") :
+          s.includes("STOP LOSS") || s.includes("🛑")  ? chalk.bold.red("  ▶") :
+          s.includes("WAIT") || s.includes("⏳")       ? chalk.yellow("  ▷") :
+          s.includes("⚠")                              ? chalk.red("  ▷") :
+                                                          chalk.dim("  ·");
+        console.log(`${icon} ${chalk.white(s)}`);
+      }
+    }
+
+    // Open positions summary
+    const pos = (d.open_positions as Record<string, unknown> | undefined) ?? {};
+    for (const [token, p] of Object.entries(pos)) {
+      const pp = p as Record<string, unknown>;
+      const pnl = pp.pnl_pct as number;
+      const pnlStr = pnl >= 0 ? chalk.green(`+${pnl}%`) : chalk.red(`${pnl}%`);
+      console.log(
+        `${ts()} ${chalk.dim("   " + token + ":")} ` +
+        `${pnlStr} P&L  ·  ` +
+        `${chalk.dim(String(pp.days_held) + "d held")}  ·  ` +
+        `${chalk.dim("trajectory: " + pp.trajectory)}`
+      );
+    }
+
+    // Performance summary
+    const perf = d.performance_summary as Record<string, unknown> | undefined;
+    if (perf) {
+      const net = perf.net_pnl_after_costs as number;
+      const netStr = net >= 0 ? chalk.green(`+$${net}`) : chalk.red(`-$${Math.abs(net)}`);
+      console.log(
+        `${ts()} ${chalk.dim("   Net P&L (after API costs):")} ${netStr}`
+      );
+    }
   },
 
   // ── Memory ops ─────────────────────────────────────────────────────────────
