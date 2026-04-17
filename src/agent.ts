@@ -74,9 +74,12 @@ Schema (write ALL fields when updating):
 
 ━━━ HARD CONSTRAINTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   - Maximum single trade: 30% of current USDC balance
-  - Minimum trade size: $2.00 USDC
+  - Minimum trade size: $0.25 USDC (lowered — in DRY_RUN mode no gas is spent on swaps)
   - Maximum concentration: 60% of total portfolio in any single non-USDC token
   - DRY_RUN env var controls simulation vs real execution
+  - In DRY_RUN mode: always complete the full analysis pipeline (gas, WETH, token prices,
+    conviction scoring) and simulate the trade decision — the swap call costs $0.00 so there
+    is no reason to skip trades based on position size. Log all simulated trades to memory.
 
 ━━━ RELATIVE STRENGTH FRAMEWORK (use this, not raw 24h%) ━━━
   Primary signal = ETH-adjusted dip = token_change_24h − WETH_change_24h
