@@ -1,4 +1,4 @@
-# Elsa Agentic Hyperthon
+# DegenAI
 
 An autonomous DeFi trading agent for the ElsaAI Agentic Hyperthon that buys crypto dips on Base, pays for each market-data or trading API call via the Elsa x402 micropayment flow, and uses an LLM as the decision-maker instead of hardcoded trading rules.
 
@@ -413,6 +413,6 @@ This repo is useful for people who want to explore:
 
 ## Summary
 
-Elsa Agentic Hyperthon is a practical demonstration of an autonomous crypto agent that treats reasoning, execution, payment, and memory as one system.
+DegenAI is a practical demonstration of an autonomous crypto agent that treats reasoning, execution, payment, and memory as one system.
 
 Its central thesis is simple: an agent should not just know how to trade, it should know when a decision is worth paying to make.
