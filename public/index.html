@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ ELSA — DIP BUYER AGENT</title>
+<style>
+  :root {
+    --bg:        #060b18;
+    --card:      #0c1526;
+    --border:    #1a2d4f;
+    --border2:   #223a60;
+    --cyan:      #00d4ff;
+    --cyan-dim:  #0090b0;
+    --green:     #00ff88;
+    --green-dim: #00aa55;
+    --red:       #ff3355;
+    --yellow:    #ffcc00;
+    --purple:    #aa66ff;
+    --muted:     #4a6080;
+    --text:      #c8d8ee;
+    --text-dim:  #6a8aaa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; overflow: hidden; }
+
+  /* ── Header ─────────────────────────────────────────────────────── */
+  #header {
+    display: flex; align-items: center; gap: 0;
+    height: 52px; border-bottom: 1px solid var(--border);
+    background: #08101f; padding: 0 20px;
+  }
+  .logo { font-size: 18px; font-weight: 700; color: var(--cyan); letter-spacing: 2px; margin-right: 16px; }
+  .logo span { color: var(--text); font-weight: 400; }
+  .hpill {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    border: 1px solid; margin: 0 5px; letter-spacing: 0.5px;
+  }
+  .hpill.live  { color: var(--green); border-color: var(--green); background: #00ff8810; }
+  .hpill.dry   { color: var(--yellow); border-color: var(--yellow); background: #ffcc0010; }
+  .hpill.base  { color: var(--cyan-dim); border-color: var(--border2); }
+  .hsep { width: 1px; height: 28px; background: var(--border); margin: 0 14px; }
+  .hstat { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0 10px; }
+  .hstat .label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .hstat .value { font-size: 14px; font-weight: 700; color: var(--text); }
+  .hstat .value.cyan  { color: var(--cyan); }
+  .hstat .value.green { color: var(--green); }
+  .hstat .value.yellow{ color: var(--yellow); }
+  #hclock { margin-left: auto; font-size: 12px; color: var(--muted); }
+  #hstatus-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-left: 10px;
+    box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  #next-cycle-wrap { display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 12px; }
+  #next-cycle-bar-bg { width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden; }
+  #next-cycle-bar { height:100%;width:0%;background:var(--cyan);border-radius:2px;transition:width 1s linear; }
+  #next-cycle-label { font-size:9px;color:var(--muted);letter-spacing:1px; }
+
+  /* ── Layout ─────────────────────────────────────────────────────── */
+  #layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 280px;
+    height: calc(100vh - 52px);
+    overflow: hidden;
+  }
+
+  /* ── Panels ─────────────────────────────────────────────────────── */
+  .panel { border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; }
+  .panel:last-child { border-right: none; }
+  .panel-title {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    padding: 10px 14px 6px; border-bottom: 1px solid var(--border); position: sticky; top: 0;
+    background: var(--bg); z-index: 5; display: flex; align-items: center; gap: 6px;
+  }
+  .panel-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  /* ── Cards ──────────────────────────────────────────────────────── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; margin: 10px; padding: 12px;
+  }
+  .card-title { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+
+  /* ── Portfolio card ─────────────────────────────────────────────── */
+  #portfolio-total { font-size: 26px; font-weight: 700; color: var(--cyan); line-height: 1; }
+  #portfolio-pnl   { font-size: 13px; margin-top: 3px; }
+  .holdings-row { display:flex; justify-content:space-between; padding: 5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .holdings-row:last-child { border-bottom:none; }
+  .holdings-row .sym { color: var(--cyan-dim); font-weight:600; }
+  .holdings-row .val { color: var(--text); }
+
+  /* ── Token cards ────────────────────────────────────────────────── */
+  .token-card { transition: border-color 0.3s; }
+  .token-card.signal-high   { border-color: var(--green); }
+  .token-card.signal-medium { border-color: var(--yellow); }
+  .token-card.signal-low    { border-color: var(--muted); }
+  .token-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .token-name { font-size:15px; font-weight:700; color:var(--text); }
+  .conviction-badge {
+    font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; letter-spacing:1px; text-transform:uppercase;
+  }
+  .conviction-badge.high   { color:var(--green);  background:#00ff8815; border:1px solid var(--green-dim); }
+  .conviction-badge.medium { color:var(--yellow); background:#ffcc0015; border:1px solid #aa8800; }
+  .conviction-badge.low    { color:var(--muted);  background:#1a2d4f; border:1px solid var(--border); }
+  .conviction-badge.none   { color:var(--muted);  background:#1a2d4f; border:1px solid var(--border); }
+  .token-price { font-size:18px; font-weight:700; color:var(--text); }
+  .token-change { font-size:12px; }
+  .token-change.up   { color: var(--green); }
+  .token-change.down { color: var(--red); }
+  .eth-adj { font-size:11px; color:var(--muted); margin-top:2px; }
+  .eth-adj.dip { color:var(--yellow); font-weight:600; }
+  .signals-row { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
+  .sig-pill {
+    font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid;
+    color:var(--muted); border-color:var(--border);
+  }
+  .sig-pill.on { color:var(--green); border-color:var(--green-dim); background:#00ff8810; }
+
+  /* ── Terminal ───────────────────────────────────────────────────── */
+  #terminal {
+    background: #030810; height: 100%; overflow-y: auto;
+    padding: 10px 0; display:flex; flex-direction:column;
+  }
+  .term-entry {
+    padding: 4px 14px; line-height: 1.5; animation: fadeIn 0.2s ease;
+    border-left: 2px solid transparent;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  .term-entry.type-agent  { border-left-color: var(--cyan); }
+  .term-entry.type-pay    { border-left-color: var(--yellow); }
+  .term-entry.type-result { border-left-color: var(--green-dim); }
+  .term-entry.type-memory { border-left-color: var(--purple); }
+  .term-entry.type-trade  { border-left-color: var(--green); background:#00ff8808; }
+  .term-entry.type-dryrun { border-left-color: var(--yellow); background:#ffcc0008; }
+  .term-entry.type-error  { border-left-color: var(--red); background:#ff335508; }
+  .term-entry.type-cycle  { border-left-color: var(--cyan-dim); background:#00d4ff06; }
+  .term-entry.type-analytics { border-left-color: var(--purple); }
+  .term-ts  { color: var(--muted); font-size:11px; margin-right:8px; }
+  .term-icon{ margin-right:6px; }
+  .term-text { color: var(--text); white-space:pre-wrap; word-break:break-word; }
+  .term-text .cost  { color: var(--yellow); font-weight:600; }
+  .term-text .tool  { color: var(--cyan); }
+  .term-text .good  { color: var(--green); }
+  .term-text .warn  { color: var(--yellow); }
+  .term-text .err   { color: var(--red); }
+  .term-text .dim   { color: var(--muted); }
+  .term-trade-box {
+    margin: 2px 0; padding: 8px 12px; border-radius:6px;
+    border: 1px solid var(--green); background:#00ff8812;
+  }
+  .term-trade-box .trow { display:flex; gap:8px; align-items:center; }
+  .term-trade-box .tamt { font-size:15px; font-weight:700; color:var(--green); }
+  .term-trade-box .tarrow { color:var(--muted); }
+  .term-trade-box .ttxlink { font-size:11px; color:var(--cyan); text-decoration:none; }
+  .term-trade-box .ttxlink:hover { text-decoration:underline; }
+
+  /* ── Right panel ─────────────────────────────────────────────────── */
+  .payment-row {
+    display:flex; align-items:center; gap:8px; padding:7px 14px;
+    border-bottom:1px solid var(--border); animation:fadeIn 0.2s ease;
+  }
+  .payment-row:hover { background:var(--card); }
+  .pay-icon { font-size:14px; flex-shrink:0; }
+  .pay-tool { color:var(--cyan); font-size:12px; flex:1; }
+  .pay-cost { color:var(--yellow); font-weight:700; font-size:12px; white-space:nowrap; }
+  .pay-status { font-size:10px; color:var(--muted); }
+  .pay-status.ok  { color:var(--green-dim); }
+  .pay-status.err { color:var(--red); }
+
+  .trade-row {
+    padding:8px 14px; border-bottom:1px solid var(--border); animation:fadeIn 0.3s ease;
+  }
+  .trade-row:hover { background:var(--card); }
+  .trade-top { display:flex; justify-content:space-between; align-items:center; }
+  .trade-action-buy  { color:var(--green);  font-weight:700; font-size:12px; }
+  .trade-action-sell { color:var(--red);    font-weight:700; font-size:12px; }
+  .trade-token  { color:var(--cyan); font-weight:600; font-size:13px; }
+  .trade-pnl.pos { color:var(--green); font-size:12px; font-weight:600; }
+  .trade-pnl.neg { color:var(--red);   font-size:12px; font-weight:600; }
+  .trade-bottom { font-size:11px; color:var(--muted); margin-top:2px; }
+
+  /* ── Scrollbar ───────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius:2px; }
+
+  /* ── Cycle bar ──────────────────────────────────────────────────── */
+  #cycle-progress-wrap { padding:10px 14px; border-bottom:1px solid var(--border); }
+  #cycle-bar-bg { width:100%; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  #cycle-bar    { height:100%; width:0%; background: linear-gradient(90deg,var(--cyan),var(--purple)); border-radius:2px; transition:width 1s linear; }
+  #cycle-label  { font-size:10px; color:var(--muted); margin-top:4px; text-align:right; }
+
+  /* ── Gas indicator ──────────────────────────────────────────────── */
+  #gas-card { display:flex; align-items:center; gap:10px; }
+  #gas-value { font-size:20px; font-weight:700; }
+  #gas-value.green  { color:var(--green); }
+  #gas-value.yellow { color:var(--yellow); }
+  #gas-value.red    { color:var(--red); }
+  #gas-label { font-size:11px; color:var(--muted); }
+
+  /* ── Stat grid ──────────────────────────────────────────────────── */
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .stat-box { background:#08101f; border:1px solid var(--border); border-radius:6px; padding:8px; }
+  .stat-box .sval { font-size:16px; font-weight:700; color:var(--text); }
+  .stat-box .slabel { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
+
+  /* ── Connecting overlay ─────────────────────────────────────────── */
+  #connecting {
+    position:fixed; inset:0; background:#060b18ee; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:16px; z-index:100;
+  }
+  #connecting .logo2 { font-size:32px; font-weight:700; color:var(--cyan); letter-spacing:4px; }
+  #connecting .sub   { color:var(--muted); font-size:13px; animation:blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  #connecting.hidden { display:none; }
+
+  .section-divider {
+    font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted);
+    padding:6px 14px 3px; background:var(--bg);
+  }
+</style>
+</head>
+<body>
+
+<!-- Connecting overlay -->
+<div id="connecting">
+  <div class="logo2">⚡ ELSA</div>
+  <div class="sub">Connecting to agent...</div>
+</div>
+
+<!-- Header -->
+<div id="header">
+  <div class="logo">⚡ ELSA <span>DIP-BUYER</span></div>
+  <div class="hpill base">BASE MAINNET</div>
+  <div id="mode-pill" class="hpill dry">DRY RUN</div>
+  <div class="hsep"></div>
+  <div class="hstat">
+    <div class="label">Cycle</div>
+    <div class="value cyan" id="h-cycle">#—</div>
+  </div>
+  <div class="hstat">
+    <div class="label">Portfolio</div>
+    <div class="value" id="h-portfolio">$—</div>
+  </div>
+  <div class="hstat">
+    <div class="label">Session Cost</div>
+    <div class="value yellow" id="h-cost">$0.000</div>
+  </div>
+  <div class="hstat">
+    <div class="label">P&amp;L</div>
+    <div class="value" id="h-pnl">—</div>
+  </div>
+  <div class="hsep"></div>
+  <div id="next-cycle-wrap">
+    <div id="next-cycle-label" class="label">NEXT CYCLE</div>
+    <div id="next-cycle-bar-bg"><div id="next-cycle-bar"></div></div>
+  </div>
+  <div id="hclock">—:—:—</div>
+  <div id="hstatus-dot"></div>
+</div>
+
+<!-- Layout -->
+<div id="layout">
+
+  <!-- LEFT: Portfolio + Tokens -->
+  <div class="panel" id="left-panel">
+    <div class="panel-title"><div class="dot"></div> Portfolio &amp; Tokens</div>
+
+    <!-- Portfolio -->
+    <div class="card">
+      <div class="card-title">Portfolio Value</div>
+      <div id="portfolio-total">$—</div>
+      <div id="portfolio-pnl" style="color:var(--muted)">Loading...</div>
+      <div style="margin-top:10px;" id="holdings-list"></div>
+    </div>
+
+    <!-- Gas -->
+    <div class="card">
+      <div class="card-title">Gas · Base Network</div>
+      <div id="gas-card">
+        <div id="gas-value" class="green">—</div>
+        <div>
+          <div style="font-weight:600;color:var(--text)">gwei</div>
+          <div id="gas-label">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Stats -->
+    <div class="card">
+      <div class="card-title">Performance</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sval" id="stat-trades">—</div><div class="slabel">Total Trades</div></div>
+        <div class="stat-box"><div class="sval" id="stat-wins">—</div><div class="slabel">Wins</div></div>
+        <div class="stat-box"><div class="sval" id="stat-pnl">—</div><div class="slabel">Net P&amp;L</div></div>
+        <div class="stat-box"><div class="sval" id="stat-x402">—</div><div class="slabel">x402 Spent</div></div>
+      </div>
+    </div>
+
+    <!-- Token Cards -->
+    <div class="card token-card" id="card-DEGEN">
+      <div class="token-header">
+        <div class="token-name">DEGEN</div>
+        <div class="conviction-badge none" id="conv-DEGEN">—</div>
+      </div>
+      <div class="token-price" id="price-DEGEN">$—</div>
+      <div class="token-change" id="change-DEGEN">—</div>
+      <div class="eth-adj" id="adj-DEGEN"></div>
+      <div class="signals-row" id="signals-DEGEN"></div>
+    </div>
+
+    <div class="card token-card" id="card-BRETT">
+      <div class="token-header">
+        <div class="token-name">BRETT</div>
+        <div class="conviction-badge none" id="conv-BRETT">—</div>
+      </div>
+      <div class="token-price" id="price-BRETT">$—</div>
+      <div class="token-change" id="change-BRETT">—</div>
+      <div class="eth-adj" id="adj-BRETT"></div>
+      <div class="signals-row" id="signals-BRETT"></div>
+    </div>
+
+    <div class="card token-card" id="card-TOSHI">
+      <div class="token-header">
+        <div class="token-name">TOSHI</div>
+        <div class="conviction-badge none" id="conv-TOSHI">—</div>
+      </div>
+      <div class="token-price" id="price-TOSHI">$—</div>
+      <div class="token-change" id="change-TOSHI">—</div>
+      <div class="eth-adj" id="adj-TOSHI"></div>
+      <div class="signals-row" id="signals-TOSHI"></div>
+    </div>
+  </div>
+
+  <!-- CENTER: Terminal -->
+  <div class="panel" style="border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden;">
+    <div class="panel-title"><div class="dot" style="background:var(--green)"></div> Claude Agent Terminal</div>
+    <div id="cycle-progress-wrap">
+      <div id="cycle-bar-bg"><div id="cycle-bar"></div></div>
+      <div id="cycle-label">Waiting for first cycle...</div>
+    </div>
+    <div id="terminal"></div>
+  </div>
+
+  <!-- RIGHT: Payments + Trades -->
+  <div class="panel" style="display:flex;flex-direction:column;overflow:hidden;">
+    <div class="panel-title" style="position:sticky;top:0;"><div class="dot" style="background:var(--yellow)"></div> x402 Micropayments</div>
+    <div id="payments-list" style="flex-shrink:0;max-height:45%;overflow-y:auto;border-bottom:1px solid var(--border);">
+      <div style="padding:12px 14px;color:var(--muted);font-size:12px;">Waiting for payments...</div>
+    </div>
+    <div class="section-divider">Trade History</div>
+    <div id="trades-list" style="flex:1;overflow-y:auto;">
+      <div style="padding:12px 14px;color:var(--muted);font-size:12px;">No trades yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Pending payment context (name → context string) ──────────────────────────
+const pendingCtx = {};
+
+// ── State ────────────────────────────────────────────────────────────────────
+const state = {
+  cycleNum: 0,
+  sessionPaid: 0,
+  portfolio: 0,
+  startPortfolio: 0,
+  intervalMs: 60000,
+  lastCycleEnd: null,
+  payments: [],
+  trades: [],
+  wethChange: null,
+  prices: {},  // token -> {price, change}
+  convictions: {},
+  signals: {},
+};
+
+// ── Clock ────────────────────────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('hclock').textContent = new Date().toLocaleTimeString();
+}, 1000);
+
+// ── Cycle progress bar ───────────────────────────────────────────────────────
+let cycleStart = null;
+let cycleInterval = 60000;
+setInterval(() => {
+  if (!cycleStart) return;
+  const elapsed = Date.now() - cycleStart;
+  const pct = Math.min(100, (elapsed / cycleInterval) * 100);
+  document.getElementById('next-cycle-bar').style.width = pct + '%';
+  const rem = Math.max(0, Math.round((cycleInterval - elapsed) / 1000));
+  document.getElementById('cycle-label').textContent = `Next cycle in ${rem}s`;
+}, 500);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmtTime(isoOrNow) {
+  const d = isoOrNow ? new Date(isoOrNow) : new Date();
+  return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+function fmtUSD(n) { return '$' + Number(n).toFixed(2); }
+function fmtCost(n) { return '$' + Number(n).toFixed(3); }
+function scrollTerminal() {
+  const t = document.getElementById('terminal');
+  t.scrollTop = t.scrollHeight;
+}
+
+// ── Terminal entry builder ────────────────────────────────────────────────────
+function addTermEntry(type, icon, html, ts) {
+  const t = document.getElementById('terminal');
+  const div = document.createElement('div');
+  div.className = `term-entry type-${type}`;
+  div.innerHTML = `<span class="term-ts">${fmtTime(ts)}</span><span class="term-icon">${icon}</span><span class="term-text">${html}</span>`;
+  t.appendChild(div);
+  // Keep max 300 entries
+  while (t.children.length > 300) t.removeChild(t.firstChild);
+  scrollTerminal();
+}
+
+// ── Payment feed ─────────────────────────────────────────────────────────────
+function addPaymentRow(icon, tool, cost, status, statusClass) {
+  const list = document.getElementById('payments-list');
+  // Remove placeholder
+  const ph = list.querySelector('[data-ph]');
+  if (ph) ph.remove();
+
+  const div = document.createElement('div');
+  div.className = 'payment-row';
+  div.innerHTML = `
+    <div class="pay-icon">${icon}</div>
+    <div class="pay-tool">${tool}</div>
+    <div class="pay-cost">${cost}</div>
+    <div class="pay-status ${statusClass}">${status}</div>`;
+  list.insertBefore(div, list.firstChild);
+  while (list.children.length > 30) list.removeChild(list.lastChild);
+}
+
+// ── Trade feed ───────────────────────────────────────────────────────────────
+function addTradeRow(action, token, amount, pnl, note, ts) {
+  const list = document.getElementById('trades-list');
+  const ph = list.querySelector('[data-ph]');
+  if (ph) ph.remove();
+
+  const pnlHtml = pnl != null
+    ? `<span class="trade-pnl ${pnl >= 0 ? 'pos' : 'neg'}">${pnl >= 0 ? '+' : ''}${fmtUSD(pnl)}</span>`
+    : '';
+  const div = document.createElement('div');
+  div.className = 'trade-row';
+  div.innerHTML = `
+    <div class="trade-top">
+      <span><span class="trade-action-${action}">${action.toUpperCase()}</span> <span class="trade-token">${token}</span></span>
+      ${pnlHtml}
+    </div>
+    <div class="trade-bottom">${note} · ${fmtTime(ts)}</div>`;
+  list.insertBefore(div, list.firstChild);
+}
+
+// ── Token card updater ───────────────────────────────────────────────────────
+const TOKENS = ['DEGEN', 'BRETT', 'TOSHI'];
+function updateTokenCard(symbol, price, change, adjChange, conviction) {
+  const priceEl  = document.getElementById(`price-${symbol}`);
+  const changeEl = document.getElementById(`change-${symbol}`);
+  const adjEl    = document.getElementById(`adj-${symbol}`);
+  const convEl   = document.getElementById(`conv-${symbol}`);
+  const cardEl   = document.getElementById(`card-${symbol}`);
+  if (!priceEl) return;
+
+  if (price != null)  priceEl.textContent = '$' + Number(price).toFixed(price < 0.01 ? 6 : 4);
+  if (change != null) {
+    changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '% 24h';
+    changeEl.className = 'token-change ' + (change >= 0 ? 'up' : 'down');
+  }
+  if (adjChange != null) {
+    adjEl.textContent = 'ETH-adj: ' + (adjChange >= 0 ? '+' : '') + adjChange.toFixed(1) + '%' + (adjChange <= -5 ? ' ← REAL DIP' : '');
+    adjEl.className = 'eth-adj' + (adjChange <= -5 ? ' dip' : '');
+  }
+  if (conviction != null) {
+    const cl = conviction.toLowerCase();
+    convEl.textContent = conviction.toUpperCase();
+    convEl.className = 'conviction-badge ' + cl;
+    if (cardEl) {
+      cardEl.className = 'card token-card ' + (cl === 'high' ? 'signal-high' : cl === 'medium' ? 'signal-medium' : cl === 'low' ? 'signal-low' : '');
+    }
+  }
+}
+
+function renderSignals(symbol, signalList) {
+  const el = document.getElementById(`signals-${symbol}`);
+  if (!el || !signalList) return;
+  const SIGNAL_LABELS = ['ETH-adj ≤-5%', 'Momentum OK', 'Gas OK', 'USDC avail', 'Win rate'];
+  el.innerHTML = SIGNAL_LABELS.map((s, i) => {
+    const on = signalList[i];
+    return `<span class="sig-pill ${on ? 'on' : ''}">${s}</span>`;
+  }).join('');
+}
+
+// ── Header updater ───────────────────────────────────────────────────────────
+function updateHeader() {
+  document.getElementById('h-cycle').textContent = state.cycleNum ? '#' + state.cycleNum : '#—';
+  document.getElementById('h-cost').textContent = fmtCost(state.sessionPaid);
+  if (state.portfolio > 0) {
+    document.getElementById('h-portfolio').textContent = fmtUSD(state.portfolio);
+    const pnl = state.portfolio - state.startPortfolio;
+    const pnlEl = document.getElementById('h-pnl');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl);
+    pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+// ── Bootstrap from memory ────────────────────────────────────────────────────
+function bootstrapFromMemory(mem) {
+  // Performance
+  const perf = mem.performance || {};
+  document.getElementById('stat-trades').textContent = perf.total_trades ?? '—';
+  document.getElementById('stat-wins').textContent   = perf.profitable_exits ?? '—';
+  const netPnl = (perf.total_pnl_usd ?? 0) - (perf.total_x402_spent ?? 0);
+  const pnlEl = document.getElementById('stat-pnl');
+  pnlEl.textContent = (netPnl >= 0 ? '+' : '') + fmtUSD(netPnl);
+  pnlEl.style.color = netPnl >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('stat-x402').textContent = fmtCost(perf.total_x402_spent ?? 0);
+
+  // Latest portfolio snapshot
+  const snaps = mem.portfolio_snapshots || [];
+  if (snaps.length > 0) {
+    const latest = snaps[snaps.length - 1];
+    state.portfolio = latest.total_usd || 0;
+    state.startPortfolio = (snaps[0] || {}).total_usd || state.portfolio;
+    document.getElementById('portfolio-total').textContent = fmtUSD(state.portfolio);
+    const pnl = state.portfolio - state.startPortfolio;
+    const pnlEl = document.getElementById('portfolio-pnl');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl) + ' since start';
+    pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // Holdings
+    const holdEl = document.getElementById('holdings-list');
+    holdEl.innerHTML = '';
+    const holdings = latest.holdings || {};
+    const row = (sym, val) => {
+      const d = document.createElement('div');
+      d.className = 'holdings-row';
+      d.innerHTML = `<span class="sym">${sym}</span><span class="val">${val}</span>`;
+      holdEl.appendChild(d);
+    };
+    row('USDC', fmtUSD(latest.usdc || 0));
+    for (const [sym, h] of Object.entries(holdings)) {
+      row(sym, fmtUSD(h.value_usd) + ` (${Number(h.amount).toLocaleString()})`);
+    }
+    updateHeader();
+  }
+
+  // Recent trades
+  const trades = (mem.trades || []).slice(-10).reverse();
+  if (trades.length > 0) {
+    document.getElementById('trades-list').innerHTML = '';
+  }
+  for (const t of trades) {
+    addTradeRow(t.action, t.token, t.from_amount, t.pnl_usd, t.reason?.slice(0, 50) || '', t.ts);
+  }
+
+  // Cycle count
+  if (mem.cycle_count) state.cycleNum = mem.cycle_count;
+  updateHeader();
+}
+
+// ── WebSocket event handlers ─────────────────────────────────────────────────
+function handleEvent(event, data, ts) {
+  switch(event) {
+
+    case 'initialState':
+      bootstrapFromMemory(data);
+      break;
+
+    case 'header':
+      addTermEntry('cycle', '⚡', '<span class="good">ELSA DIP-BUYER AGENT · Base Network · Claude-Powered</span>', ts);
+      break;
+
+    case 'wake':
+      state.cycleNum = data.cycleNum;
+      cycleStart = Date.now();
+      updateHeader();
+      document.getElementById('cycle-bar').style.width = '0%';
+      document.getElementById('cycle-label').textContent = 'Cycle running...';
+      addTermEntry('cycle', '⏳', `<span class="good">Cycle #${data.cycleNum}</span> <span class="dim">— waking up, running portfolio cycle</span>`, ts);
+      break;
+
+    case 'payment':
+      state.sessionPaid = data.sessionTotal;
+      pendingCtx[data.name] = data.context;
+      updateHeader();
+      addTermEntry('pay', '💸', `Agent spending <span class="cost">${fmtCost(data.cost)}</span> → <span class="tool">${data.name}</span>${data.context ? ` <span class="dim">[${data.context}]</span>` : ''} <span class="dim">· session: ${fmtCost(data.sessionTotal)}</span>`, ts);
+      addPaymentRow('💸', data.name + (data.context ? ` [${data.context}]` : ''), fmtCost(data.cost), '402…', '');
+      break;
+
+    case 'paymentResult': {
+      const d = data.data || {};
+      const context = pendingCtx[data.name] || data.context || '';
+      delete pendingCtx[data.name];
+      let summary = '';
+      if (data.name === 'get_gas_prices') {
+        const gwei = d.base_fee ?? d.gas_price ?? d.baseFee ?? d.gwei;
+        if (gwei != null) {
+          const cls = gwei < 0.05 ? 'green' : gwei < 0.15 ? 'yellow' : 'red';
+          const label = gwei < 0.05 ? '✓ green-light' : gwei < 0.15 ? '⚠ borderline' : '✗ skip trades';
+          document.getElementById('gas-value').textContent = gwei;
+          document.getElementById('gas-value').className = 'green ' + (gwei < 0.05 ? 'green' : gwei < 0.15 ? 'yellow' : 'red');
+          document.getElementById('gas-label').textContent = label;
+          summary = `Gas: <span class="${cls}">${gwei} gwei · ${label}</span>`;
+        }
+      } else if (data.name === 'get_token_price') {
+        const price = d.price_usd ?? d.price;
+        const change = d.change_24h ?? d.price_change_24h;
+        const sym = context || '?';
+        if (data.isWeth) state.wethChange = change;
+        if (price != null) state.prices[sym] = { price, change };
+        const adjChange = (change != null && state.wethChange != null) ? change - state.wethChange : null;
+        updateTokenCard(sym, price, change, adjChange, null);
+        summary = `<span class="tool">${sym}</span>: $${price} <span class="${change >= 0 ? 'good' : 'warn'}">${change >= 0 ? '+' : ''}${change?.toFixed(2)}%</span>`;
+        if (adjChange != null) summary += ` <span class="dim">ETH-adj: ${adjChange >= 0 ? '+' : ''}${adjChange.toFixed(1)}%${adjChange <= -5 ? ' ← REAL DIP' : ''}</span>`;
+      } else if (data.name === 'get_balances' || data.name === 'get_portfolio') {
+        const total = d.total_usd ?? d.total_value_usd;
+        const usdc  = d.usdc ?? d.USDC;
+        if (total != null) {
+          state.portfolio = total;
+          document.getElementById('portfolio-total').textContent = fmtUSD(total);
+          const pnl = total - state.startPortfolio;
+          const pnlEl = document.getElementById('portfolio-pnl');
+          pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl) + ' since start';
+          pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+          updateHeader();
+        }
+        summary = usdc != null ? `USDC: <span class="good">${fmtUSD(usdc)}</span>  Total: ${fmtUSD(total)}` : JSON.stringify(d).slice(0, 80);
+      } else if (data.name === 'get_swap_quote') {
+        const out = d.to_amount ?? d.estimated_output ?? d.output_amount;
+        summary = `Quote: <span class="good">${out}</span>`;
+      } else {
+        summary = JSON.stringify(d).slice(0, 100);
+      }
+      addTermEntry('result', '✅', `<span class="dim">Paid &amp; verified</span> → ${summary}`, ts);
+      // Update the most recent payment row status
+      const rows = document.querySelectorAll('#payments-list .payment-row');
+      if (rows[0]) {
+        const st = rows[0].querySelector('.pay-status');
+        if (st) { st.textContent = '✓ ok'; st.className = 'pay-status ok'; }
+      }
+      break;
+    }
+
+    case 'paymentError':
+      addTermEntry('error', '❌', `<span class="err">${data.name} failed: ${data.message}</span>`, ts);
+      addPaymentRow('❌', data.name, '—', 'failed', 'err');
+      break;
+
+    case 'analyticsRun':
+      addTermEntry('analytics', '🧮', '<span class="dim">Running analytics...</span> <span style="color:var(--purple)">free · local computation</span>', ts);
+      break;
+
+    case 'analyticsResult': {
+      if (!data) break;
+      const conv = data.conviction_levels || {};
+      const sigs = data.signals || [];
+      for (const [tok, level] of Object.entries(conv)) {
+        state.convictions[tok] = level;
+        updateTokenCard(tok, null, null, null, level);
+      }
+      const sigHtml = sigs.slice(0, 3).map(s => {
+        const isStrong = s.includes('BUY') || s.includes('PROFIT');
+        return `<span class="${isStrong ? 'good' : 'dim'}">${s.slice(0, 60)}</span>`;
+      }).join('<br>');
+      addTermEntry('analytics', '🎯', `<span style="color:var(--purple)">Analytics complete</span><br>${sigHtml}`, ts);
+      break;
+    }
+
+    case 'memoryRead':
+      addTermEntry('memory', '📚', '<span style="color:var(--purple)">Reading memory...</span>', ts);
+      break;
+
+    case 'memoryWrite':
+      addTermEntry('memory', '💾', '<span style="color:var(--purple)">Writing memory...</span>', ts);
+      break;
+
+    case 'memoryDone':
+      addTermEntry('memory', data.wasWrite ? '✓' : '✓', `<span class="dim">${data.wasWrite ? 'Memory saved — cycle recorded.' : 'Memory loaded — history ready.'}</span>`, ts);
+      break;
+
+    case 'agentText': {
+      const text = (data.text || '').trim();
+      if (!text) break;
+      const lines = text.split('\n').map(line => {
+        if (/\$[0-9]|gwei|skip.*save|saving|too expensive|not worth|preserve capital/i.test(line)) {
+          return `<span class="cost">${escHtml(line)}</span>`;
+        }
+        if (/buying|selling|executing|rotating|rebalancing|taking profit|cutting loss/i.test(line)) {
+          return `<strong style="color:var(--text)">${escHtml(line)}</strong>`;
+        }
+        return `<span>${escHtml(line)}</span>`;
+      }).join('<br>');
+      addTermEntry('agent', '🤖', `<span class="dim">Claude:</span><br>${lines}`, ts);
+      break;
+    }
+
+    case 'tradeExecuted': {
+      const { fromAmount, fromToken, toAmount, toToken, txHash } = data;
+      addTermEntry('trade', '🔄', `
+        <div class="term-trade-box">
+          <div class="trow"><span class="tamt">${fromAmount} ${fromToken}</span><span class="tarrow"> → </span><span class="tamt">${toAmount} ${toToken}</span></div>
+          <div style="margin-top:4px;font-size:11px;color:var(--muted)">TxHash: <a class="ttxlink" href="https://basescan.org/tx/${txHash}" target="_blank">${txHash?.slice(0, 20)}...</a></div>
+        </div>`, ts);
+      addTradeRow('buy', toToken, fromAmount, null, 'Live swap executed', ts);
+      document.getElementById('mode-pill').className = 'hpill live';
+      document.getElementById('mode-pill').textContent = 'LIVE';
+      break;
+    }
+
+    case 'dryRunResult':
+      addTermEntry('dryrun', '🔬', `<span class="warn">DRY RUN</span> — Would have swapped: <span class="good">${data.fromAmount}</span> → <span class="good">${data.toAmount}</span>`, ts);
+      addTradeRow('buy', '?', data.fromAmount, null, 'Dry run simulation', ts);
+      break;
+
+    case 'cycleEnd':
+      state.sessionPaid = data.sessionPaid;
+      if (data.currentPortfolio > 0) {
+        state.portfolio = data.currentPortfolio;
+        if (state.startPortfolio === 0) state.startPortfolio = data.startPortfolio;
+      }
+      cycleStart = Date.now();
+      document.getElementById('cycle-bar').style.width = '0%';
+      document.getElementById('cycle-label').textContent = `Next cycle in ${Math.round(cycleInterval/1000)}s`;
+      updateHeader();
+      const delta = data.currentPortfolio - data.startPortfolio;
+      const net   = delta - data.cyclePaid;
+      addTermEntry('cycle', '📊', `
+        <span class="dim">Cycle #${data.cycleNum} complete</span>
+        <span class="dim"> · x402: </span><span class="cost">${fmtCost(data.cyclePaid)}</span>
+        <span class="dim"> · Portfolio: </span><span class="${delta >= 0 ? 'good' : 'err'}">${delta >= 0 ? '+' : ''}${fmtUSD(delta)}</span>
+        <span class="dim"> · Net: </span><span class="${net >= 0 ? 'good' : 'err'}">${net >= 0 ? '+' : ''}${fmtUSD(net)}</span>`, ts);
+      break;
+
+    case 'error':
+      addTermEntry('error', '💥', `<span class="err">Fatal: ${escHtml(data.message)}</span>`, ts);
+      break;
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── WebSocket connection ──────────────────────────────────────────────────────
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}`);
+
+  ws.onopen = () => {
+    document.getElementById('connecting').classList.add('hidden');
+    document.getElementById('hstatus-dot').style.background = 'var(--green)';
+    document.getElementById('hstatus-dot').style.boxShadow = '0 0 8px var(--green)';
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const { event, data, ts } = JSON.parse(e.data);
+      handleEvent(event, data, ts);
+    } catch {}
+  };
+
+  ws.onclose = () => {
+    document.getElementById('connecting').classList.remove('hidden');
+    document.getElementById('connecting').querySelector('.sub').textContent = 'Reconnecting...';
+    document.getElementById('hstatus-dot').style.background = 'var(--red)';
+    document.getElementById('hstatus-dot').style.boxShadow = '0 0 8px var(--red)';
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+connect();
+</script>
+</body>
+</html>
