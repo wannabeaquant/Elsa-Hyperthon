@@ -109,7 +109,7 @@ export const display = {
   header() {
     console.log("\n" + chalk.bold.cyan("━".repeat(65)));
     console.log(
-      chalk.bold.cyan("  ⚡ ELSA") +
+      chalk.bold.cyan("  ⚡ DEGENAI") +
       chalk.bold.white(" DIP-BUYER AGENT") +
       chalk.dim("  ·  Base Network  ·  Claude-Powered")
     );

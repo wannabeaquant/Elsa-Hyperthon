@@ -1,7 +1,7 @@
 {
-  "name": "elsa-dip-buyer-agent",
+  "name": "degenai",
   "version": "1.0.0",
-  "description": "Autonomous DeFi dip-buying agent on Base using Claude + Elsa x402",
+  "description": "DegenAI autonomous DeFi dip-buying agent on Base using Claude + Elsa x402",
   "scripts": {
     "dev": "npx tsx src/index.ts",
     "build": "tsc",

@@ -1,4 +1,4 @@
-# Elsa Agentic Hyperthon — Codex-Powered DeFi Trading Agent
+# DegenAI — Codex-Powered DeFi Trading Agent
 
 ## Project Overview
 

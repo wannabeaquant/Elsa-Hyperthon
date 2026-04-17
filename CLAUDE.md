@@ -1,4 +1,4 @@
-# Elsa Agentic Hyperthon — Claude-Powered DeFi Trading Agent
+# DegenAI — Claude-Powered DeFi Trading Agent
 
 ## Project Overview
 
