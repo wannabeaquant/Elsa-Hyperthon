@@ -331,6 +331,13 @@ Claude doesn't see any of this — it just calls `npx tsx src/helpers/gas.ts` an
 3. Test with `DRY_RUN=true npm start`
 4. Verify `memory.json` updates correctly
 5. Check terminal output for correct conviction/signal display
+6. **Push frequently** — after each feature/fix, run:
+   ```bash
+   git add .
+   git commit -m "Describe what changed"
+   git push origin main
+   ```
+   This ensures work is backed up and available to other Claude sessions.
 
 ### Testing Analytics Independently
 ```bash
