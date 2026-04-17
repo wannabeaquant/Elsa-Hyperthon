@@ -356,6 +356,11 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
         continue;
       }
 
+      const raw =
+        typeof message.tool_use_result === "string"
+          ? message.tool_use_result
+          : JSON.stringify(message.tool_use_result);
+
       if (helperName === "run_analytics") {
         try {
           const data = JSON.parse(raw);
@@ -365,11 +370,6 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
         }
         continue;
       }
-
-      const raw =
-        typeof message.tool_use_result === "string"
-          ? message.tool_use_result
-          : JSON.stringify(message.tool_use_result);
 
       try {
         const data = JSON.parse(raw);

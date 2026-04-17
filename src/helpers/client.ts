@@ -25,5 +25,5 @@ export function createX402Client() {
   const walletClient = createWalletClient({ account, chain, transport: http(rpcUrl) });
 
   const baseAxios = axios.create({ baseURL: X402_SERVER_URL, timeout: 90_000 });
-  return withPaymentInterceptor(baseAxios, walletClient);
+  return withPaymentInterceptor(baseAxios, walletClient as any);
 }
