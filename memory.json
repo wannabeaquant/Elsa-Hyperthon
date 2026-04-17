@@ -1,13 +1,20 @@
 {
   "version": 1,
-  "cycle_count": 1,
-  "last_updated": "2026-04-17T10:43:30.000Z",
+  "cycle_count": 2,
+  "last_updated": "2026-04-17T11:30:30.000Z",
   "portfolio_snapshots": [
     {
       "ts": "2026-04-17T10:43:30.000Z",
       "usdc": 2.928,
       "holdings": {},
       "total_usd": 2.928
+    },
+    {
+      "ts": "2026-04-17T11:30:30.000Z",
+      "usdc": 2.921,
+      "holdings": {},
+      "total_usd": 2.921,
+      "note": "balance estimated; -$0.007 from this cycle x402 costs (gas+WETH+DEGEN+BRETT checks)"
     }
   ],
   "trades": [],
@@ -19,6 +26,14 @@
         "change_24h": null,
         "vs_weth_pct": 0,
         "velocity_obs": "insufficient_data"
+      },
+      {
+        "ts": "2026-04-17T11:29:14.000Z",
+        "price_usd": 2347.6963,
+        "change_24h": 0.164,
+        "change_24h_note": "inter-cycle proxy (47 min), not true 24h — API does not return 24h change",
+        "vs_weth_pct": 0,
+        "velocity_obs": "insufficient_data"
       }
     ],
     "DEGEN": [
@@ -28,6 +43,14 @@
         "change_24h": null,
         "vs_weth_pct": null,
         "velocity_obs": "insufficient_data"
+      },
+      {
+        "ts": "2026-04-17T11:29:51.000Z",
+        "price_usd": 0.0008,
+        "change_24h": 0,
+        "change_24h_note": "inter-cycle proxy (47 min), not true 24h — API does not return 24h change",
+        "vs_weth_pct": -0.164,
+        "velocity_obs": "flat"
       }
     ],
     "BRETT": [
@@ -37,6 +60,14 @@
         "change_24h": null,
         "vs_weth_pct": null,
         "velocity_obs": "insufficient_data"
+      },
+      {
+        "ts": "2026-04-17T11:30:30.000Z",
+        "price_usd": 0.0079,
+        "change_24h": 2.6,
+        "change_24h_note": "inter-cycle proxy (47 min), not true 24h — API does not return 24h change",
+        "vs_weth_pct": 2.44,
+        "velocity_obs": "recovering"
       }
     ],
     "TOSHI": [
@@ -54,6 +85,11 @@
       "ts": "2026-04-17T10:40:02.000Z",
       "gwei": 10,
       "action": "observed - 200x above 0.05 threshold, no trade executed"
+    },
+    {
+      "ts": "2026-04-17T11:27:43.000Z",
+      "gwei": 10,
+      "action": "observed - still 10 gwei slow (15 standard, 25 fast). Anomalously high for Base. No trade executed."
     }
   ],
   "skipped_opportunities": [
@@ -61,7 +97,16 @@
       "ts": "2026-04-17T10:43:30.000Z",
       "token": "ALL",
       "eth_adjusted_dip_pct": null,
-      "reason": "Gas 10 gwei (200x above 0.05 threshold). No 24h change data on first cycle. 0 conviction signals - bootstrapping cycle. No trade warranted.",
+      "reason": "Gas 10 gwei (200x above 0.05 threshold). No 24h change data on first cycle. 0 conviction signals - bootstrapping cycle.",
+      "gas_gwei": 10,
+      "conviction_level": "none",
+      "outcome": "pending"
+    },
+    {
+      "ts": "2026-04-17T11:30:30.000Z",
+      "token": "ALL",
+      "eth_adjusted_dip_pct": null,
+      "reason": "Gas still 10 gwei (67x above 0.15 threshold). No ETH-adjusted dip: DEGEN flat (-0.164% vs ETH, 47-min proxy), BRETT outperforming ETH (+2.44% vs ETH). Conviction signals: 1/5 (only USDC available passes). TOSHI price fetch failed (ECONNRESET + ENOTFOUND). Data accumulation cycle only.",
       "gas_gwei": 10,
       "conviction_level": "none",
       "outcome": "pending"
@@ -74,8 +119,8 @@
     "win_rate": 0,
     "max_drawdown_pct": 0,
     "best_trade_pnl": 0,
-    "total_x402_spent": 0.014,
-    "pnl_after_api_costs": -0.014
+    "total_x402_spent": 0.021,
+    "pnl_after_api_costs": -0.021
   },
   "token_config": {
     "DEGEN": {
@@ -102,7 +147,9 @@
   },
   "agent_notes": [
     "2026-04-17T10:43:30Z - CYCLE 1 BOOTSTRAP: First ever cycle. Memory was empty. Collected first price observations: WETH=$2343.85, DEGEN=$0.0008, BRETT=$0.0077, TOSHI=$0.0002. Gas=10 gwei (extremely high for Base - 200x above normal threshold). No 24h change data returned by price API on first observation, so ETH-adjusted dip cannot be computed yet. Will use inter-cycle price deltas in future cycles to approximate directional moves. No trades possible: 0 conviction signals (gas fail, no dip data, no momentum history). API spend this cycle: $0.014. Strategy: HOLD all USDC ($2.928) and accumulate observations.",
-    "2026-04-17T10:43:30Z - CAPITAL NOTE: Only $2.928 USDC available. With minimum trade size $0.25 and max single trade 30% ($0.878), we have limited but workable capital. Need to be very selective - every API spend cycle costs ~$0.014 baseline, eating 0.48% of capital/cycle. Will throttle token checks to only analytics-flagged tokens after first few cycles.",
-    "2026-04-17T10:43:30Z - GAS NOTE: Base gas at 10 gwei today is anomalously high. Historical Base network gas is typically 0.001-0.05 gwei. May indicate network congestion or API reporting in different units. Will monitor across cycles."
+    "2026-04-17T10:43:30Z - CAPITAL NOTE: Only $2.928 USDC available. With minimum trade size $0.25 and max single trade 30% ($0.878), we have limited but workable capital. Need to be very selective - every API spend cycle costs ~$0.008-0.014 baseline. Will throttle token checks to only analytics-flagged tokens after first few cycles.",
+    "2026-04-17T10:43:30Z - GAS NOTE: Base gas at 10 gwei today is anomalously high. Historical Base network gas is typically 0.001-0.05 gwei. May indicate network congestion or API reporting in different units. Will monitor across cycles.",
+    "2026-04-17T11:30:30Z - CYCLE 2: Gas still 10 gwei (slow=10, standard=15, fast=25 — same as cycle 1). Elsa price API CONFIRMED does not return change_24h field — endpoint only returns spot price. Strategy adopted: use inter-cycle price deltas as directional proxy for ETH-adjusted dip calculation. Computed 47-min changes: WETH +0.164%, DEGEN 0% (ETH-adj: -0.164% = FLAT), BRETT +2.60% (ETH-adj: +2.44% = OUTPERFORMING ETH). TOSHI price failed twice — ECONNRESET then ENOTFOUND, likely rate limiting after burst of parallel requests. Using stale $0.0002. Signal count all tokens: 1/5 (only USDC available; gas FAIL, no dip signal, no momentum, no win rate). NO TRADE. API spend this cycle: $0.007 (gas $0.001 + WETH $0.002 + DEGEN $0.002 + BRETT $0.002). Running total: $0.021. Need gas below 0.15 gwei AND ETH-adjusted dip on any token to act.",
+    "2026-04-17T11:30:30Z - API INSIGHT: Elsa /api/get_token_price endpoint returns only spot price with no 24h change. Future improvement: could compute rolling 24h change by storing observations and looking back 24h in price_observations array. For now using inter-cycle deltas as directional signals. Need ~5+ cycles at consistent intervals to get meaningful momentum data."
   ]
 }
