@@ -2,52 +2,154 @@ import chalk from "chalk";
 
 const ts = () => chalk.dim(`[${new Date().toLocaleTimeString()}]`);
 
-const TOOL_COSTS: Record<string, string> = {
-  get_balances:            "$0.005",
-  get_portfolio:           "$0.010",
-  get_transaction_history: "$0.003",
-  get_gas_prices:          "$0.001",
-  get_token_price:         "$0.002",
-  search_token:            "$0.001",
-  get_swap_quote:          "$0.010",
-  execute_swap:            "$0.100",
+export const TOOL_COSTS: Record<string, number> = {
+  get_balances:            0.005,
+  get_portfolio:           0.010,
+  get_transaction_history: 0.003,
+  get_gas_prices:          0.001,
+  get_token_price:         0.002,
+  search_token:            0.001,
+  get_swap_quote:          0.010,
+  execute_swap:            0.100,
 };
 
+// Session-level tracking
+let _cycleNum   = 0;
+let _cyclePaid  = 0;
+let _sessionPaid = 0;
+let _startPortfolio  = 0;
+let _currentPortfolio = 0;
+
+// ── Smart result formatters per tool ─────────────────────────────────────────
+
+function formatResult(name: string, data: Record<string, unknown>): string {
+  switch (name) {
+    case "get_gas_prices": {
+      const gwei =
+        (data.base_fee ?? data.gas_price ?? data.baseFee ?? data.gwei) as number | undefined;
+      if (gwei == null) break;
+      const level =
+        gwei < 0.05 ? chalk.bold.green("✓ green-light to trade") :
+        gwei < 0.15 ? chalk.bold.yellow("⚠ borderline") :
+                      chalk.bold.red("✗ too expensive — skip trades");
+      return `Gas: ${chalk.bold.white(String(gwei))} gwei  ${level}`;
+    }
+    case "get_token_price": {
+      const price  = (data.price_usd ?? data.price) as number | undefined;
+      const change = (data.change_24h ?? data.price_change_24h) as number | undefined;
+      if (price == null) break;
+      const changeStr = change != null
+        ? (change >= 0
+          ? chalk.green(`+${change.toFixed(2)}% 24h ↑`)
+          : chalk.red(`${change.toFixed(2)}% 24h ↓`))
+        : "";
+      const dipTag = change != null && change <= -5
+        ? chalk.bold.yellow("  ← DIP ALERT")
+        : change != null && change >= 10
+          ? chalk.bold.green("  ← RALLY")
+          : "";
+      return `Price: ${chalk.bold.white(`$${price}`)}  ${changeStr}${dipTag}`;
+    }
+    case "get_balances": {
+      const usdc  = (data.usdc ?? data.USDC) as number | undefined;
+      const total = (data.total_usd ?? data.total_value_usd) as number | undefined;
+      if (total != null) {
+        if (_startPortfolio === 0) _startPortfolio = total;
+        _currentPortfolio = total;
+      }
+      const parts: string[] = [];
+      if (usdc  != null) parts.push(`USDC: ${chalk.bold.white(`$${Number(usdc).toFixed(2)}`)}`);
+      if (total != null) parts.push(`Total: ${chalk.bold.white(`$${Number(total).toFixed(2)}`)}`);
+      return parts.join("  ") || JSON.stringify(data).slice(0, 100);
+    }
+    case "get_portfolio": {
+      const total = (data.total_usd ?? data.total_value_usd) as number | undefined;
+      const risk  = (data.risk_score ?? data.risk) as string | number | undefined;
+      if (total != null) {
+        if (_startPortfolio === 0) _startPortfolio = total;
+        _currentPortfolio = total;
+      }
+      const parts: string[] = [];
+      if (total != null) parts.push(`Portfolio: ${chalk.bold.white(`$${Number(total).toFixed(2)}`)}`);
+      if (risk  != null) parts.push(`Risk: ${chalk.yellow(String(risk))}`);
+      return parts.join("  ") || JSON.stringify(data).slice(0, 100);
+    }
+    case "get_swap_quote": {
+      const out = (data.to_amount ?? data.estimated_output ?? data.output_amount) as string | number | undefined;
+      const impact = (data.price_impact ?? data.priceImpact) as string | number | undefined;
+      if (out == null) break;
+      const impactStr = impact != null ? `  Impact: ${chalk.dim(String(impact) + "%")}` : "";
+      return `Expected output: ${chalk.bold.green(String(out))}${impactStr}`;
+    }
+    case "execute_swap": {
+      const txHash = (data.tx_hash ?? data.txHash) as string | undefined;
+      return txHash
+        ? `Confirmed on-chain: ${chalk.cyan(txHash.slice(0, 20) + "...")}`
+        : "Swap complete";
+    }
+    default:
+      break;
+  }
+  return JSON.stringify(data).slice(0, 110);
+}
+
+// ── Display API ───────────────────────────────────────────────────────────────
+
 export const display = {
-  // ── Session header ──────────────────────────────────────────────────────────
   header() {
-    console.log("\n" + chalk.bold.blue("━".repeat(65)));
+    console.log("\n" + chalk.bold.cyan("━".repeat(65)));
     console.log(
-      chalk.bold.blue("  ⚡ ELSA DIP-BUYER AGENT") +
-        chalk.dim("  ·  Base Network  ·  Claude-Powered")
+      chalk.bold.cyan("  ⚡ ELSA") +
+      chalk.bold.white(" DIP-BUYER AGENT") +
+      chalk.dim("  ·  Base Network  ·  Claude-Powered")
     );
-    console.log(chalk.bold.blue("━".repeat(65)));
+    console.log(chalk.bold.cyan("━".repeat(65)));
   },
 
-  // ── Wake-up ─────────────────────────────────────────────────────────────────
-  wake() {
-    console.log(`\n${ts()} ${chalk.yellow("⏳")} Waking up... Running portfolio cycle.\n`);
+  wake(cycleNum: number) {
+    _cycleNum  = cycleNum;
+    _cyclePaid = 0;
+    _startPortfolio  = 0;
+    _currentPortfolio = 0;
+    console.log(
+      `\n${ts()} ${chalk.yellow("⏳")} ` +
+      chalk.bold(`Cycle #${cycleNum}`) +
+      chalk.dim(" — waking up, running portfolio cycle.\n")
+    );
   },
 
-  // ── x402 payment flow ───────────────────────────────────────────────────────
-  toolRequest(name: string) {
-    const cost = TOOL_COSTS[name] ?? "?";
-    console.log(`\n${ts()} ${chalk.cyan("📡")} Requesting ${chalk.bold(name)}...`);
-    console.log(`${ts()} ${chalk.red("🛑")} 402 Payment Required intercepted. Price: ${chalk.yellow(cost)} USDC`);
-    console.log(`${ts()} ${chalk.magenta("💸")} Signing x402 payment locally... Transaction sent.`);
+  // ── x402 payment flow ──────────────────────────────────────────────────────
+
+  payment(name: string, context = "") {
+    const cost = TOOL_COSTS[name] ?? 0;
+    _cyclePaid   += cost;
+    _sessionPaid += cost;
+
+    const costTag  = chalk.bold.yellow(`$${cost.toFixed(3)}`);
+    const ctxTag   = context ? chalk.dim(` [${context}]`) : "";
+    const totalTag = chalk.dim(`  (session: $${_sessionPaid.toFixed(3)})`);
+
+    console.log(
+      `\n${ts()} ${chalk.magenta("💸")} Agent spending ${costTag} ` +
+      `→ ${chalk.bold(name)}${ctxTag}${totalTag}`
+    );
+    console.log(
+      `${ts()} ${chalk.dim("   402 intercepted · signing USDC micropayment · verifying...")}`
+    );
   },
 
-  toolSuccess(name: string, data: unknown) {
-    const preview = JSON.stringify(data).slice(0, 120);
-    console.log(`${ts()} ${chalk.green("✅")} Payment verified. ${chalk.bold(name)} data received.`);
-    console.log(`${ts()} ${chalk.dim("   →")} ${chalk.dim(preview)}${preview.length >= 120 ? chalk.dim("…") : ""}`);
+  paymentResult(name: string, data: unknown) {
+    const d = (typeof data === "object" && data !== null ? data : {}) as Record<string, unknown>;
+    const summary = formatResult(name, d);
+    console.log(`${ts()} ${chalk.green("✅")} Paid & verified  →  ${summary}`);
   },
 
-  toolError(name: string, message: string) {
+  paymentError(name: string, message: string) {
     console.log(`${ts()} ${chalk.red("❌")} ${chalk.bold(name)} failed: ${chalk.red(message)}`);
   },
 
-  // ── Memory operations (free — file I/O, no x402) ─────────────────────────────
+  // ── Memory ops ─────────────────────────────────────────────────────────────
+
   memoryRead() {
     console.log(`\n${ts()} ${chalk.blue("📚")} Reading memory...`);
   },
@@ -57,41 +159,89 @@ export const display = {
   },
 
   memoryDone(wasWrite: boolean) {
-    console.log(`${ts()} ${chalk.dim(wasWrite ? "   ✓ Memory saved." : "   ✓ Memory loaded.")}`);
+    console.log(
+      `${ts()} ${chalk.dim(wasWrite ? "   ✓ Memory saved — cycle recorded." : "   ✓ Memory loaded — history ready.")}`
+    );
   },
 
-  // ── Agent reasoning / decision text ─────────────────────────────────────────
+  // ── Agent reasoning ────────────────────────────────────────────────────────
+
   agentText(text: string) {
     if (!text.trim()) return;
-    console.log(`\n${ts()} ${chalk.white("🤖")} ${chalk.bold("Agent:")}`);
-    const indented = text.replace(/\n/g, "\n   ");
-    console.log(`   ${chalk.white(indented)}`);
+    console.log(`\n${ts()} ${chalk.white("🤖")} ${chalk.bold("Claude:")}`);
+    const lines = text.split("\n").map(line => {
+      // Highlight lines with cost/budget reasoning
+      if (/\$[0-9]|gwei|skip.*save|saving|too expensive|not worth|preserve capital/i.test(line)) {
+        return chalk.yellow(line);
+      }
+      // Highlight decisive action lines
+      if (/buying|selling|executing|rotating|rebalancing|taking profit|cutting loss/i.test(line)) {
+        return chalk.bold.white(line);
+      }
+      return chalk.white(line);
+    });
+    const indented = lines.join("\n").replace(/\n/g, "\n   ");
+    console.log(`   ${indented}`);
   },
 
-  // ── Trade outcomes ───────────────────────────────────────────────────────────
+  // ── Trade outcomes ─────────────────────────────────────────────────────────
+
   tradeExecuted(fromAmount: string, fromToken: string, toAmount: string, toToken: string, txHash: string) {
     console.log("\n" + chalk.bold.green("━".repeat(65)));
-    console.log(chalk.bold.green("  🔄 SWAP EXECUTED"));
+    console.log(chalk.bold.green("  🔄 SWAP EXECUTED ON BASE"));
     console.log(chalk.bold.green("━".repeat(65)));
-    console.log(`  ${chalk.white(fromAmount)} ${chalk.yellow(fromToken)} → ${chalk.green(toAmount)} ${chalk.yellow(toToken)}`);
+    console.log(
+      `  ${chalk.white(fromAmount)} ${chalk.yellow(fromToken)}` +
+      `  →  ${chalk.bold.green(toAmount)} ${chalk.yellow(toToken)}`
+    );
     console.log(`  ${chalk.dim("TxHash:")} ${chalk.cyan(txHash)}`);
+    console.log(`  ${chalk.dim("View on BaseScan →")} ${chalk.underline.cyan(`https://basescan.org/tx/${txHash}`)}`);
     console.log(chalk.bold.green("━".repeat(65)) + "\n");
   },
 
   dryRunResult(fromAmount: string, toAmount: string) {
     console.log("\n" + chalk.bold.yellow("━".repeat(65)));
-    console.log(chalk.bold.yellow("  🔬 DRY RUN — Simulation successful (DRY_RUN=true)"));
+    console.log(chalk.bold.yellow("  🔬 DRY RUN — Would have executed"));
     console.log(chalk.bold.yellow("━".repeat(65)));
-    console.log(`  Would swap: ${chalk.white(fromAmount)} USDC → ${chalk.green(toAmount)}`);
-    console.log(`  ${chalk.dim("Set DRY_RUN=false in .env to execute for real.")}`);
+    console.log(`  ${chalk.white(fromAmount)} USDC  →  ${chalk.bold.green(toAmount)}`);
+    console.log(`  ${chalk.dim("Set DRY_RUN=false to execute for real.")}`);
     console.log(chalk.bold.yellow("━".repeat(65)) + "\n");
   },
 
+  // ── Cycle summary ──────────────────────────────────────────────────────────
+
   cycleEnd() {
-    console.log("\n" + chalk.dim("─".repeat(65)) + "\n");
+    console.log("\n" + chalk.bold.cyan("━".repeat(65)));
+    console.log(chalk.bold(`  📊 CYCLE #${_cycleNum} COMPLETE`));
+
+    // x402 spend line
+    const callsStr = chalk.dim(`($${_cyclePaid.toFixed(3)} this cycle · $${_sessionPaid.toFixed(3)} session total)`);
+    console.log(`  x402 micropayments:   ${callsStr}`);
+
+    // Portfolio delta line
+    if (_currentPortfolio > 0 && _startPortfolio > 0) {
+      const delta    = _currentPortfolio - _startPortfolio;
+      const deltaStr = delta >= 0
+        ? chalk.bold.green(`+$${delta.toFixed(2)}`)
+        : chalk.bold.red(`-$${Math.abs(delta).toFixed(2)}`);
+      const net = _currentPortfolio - _startPortfolio - _cyclePaid;
+      const netStr = net >= 0
+        ? chalk.green(`net +$${net.toFixed(2)} after API costs`)
+        : chalk.red(`net -$${Math.abs(net).toFixed(2)} after API costs`);
+      console.log(
+        `  Portfolio:            ` +
+        `${chalk.white(`$${_startPortfolio.toFixed(2)}`)} → ` +
+        `${chalk.white(`$${_currentPortfolio.toFixed(2)}`)}  ` +
+        `(${deltaStr}  ·  ${netStr})`
+      );
+    } else {
+      console.log(`  Portfolio:            ${chalk.dim("no balance data this cycle")}`);
+    }
+
+    console.log(chalk.bold.cyan("━".repeat(65)) + "\n");
   },
 
   error(message: string) {
-    console.log(`\n${ts()} ${chalk.red("💥")} Fatal error: ${chalk.red(message)}\n`);
+    console.log(`\n${ts()} ${chalk.red("💥")} Fatal: ${chalk.red(message)}\n`);
   },
 };
