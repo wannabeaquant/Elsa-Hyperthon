@@ -136,7 +136,7 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
     prompt:
       "Run your portfolio management cycle: read memory, assess market conditions, make intelligent trading decisions, update memory.",
     options: {
-      model: "claude-opus-4-7",
+      model: "claude-sonnet-4-6",
       maxTurns: 30,
       systemPrompt: SYSTEM_PROMPT,
       permissionMode: "bypassPermissions",
