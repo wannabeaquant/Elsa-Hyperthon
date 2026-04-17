@@ -6,13 +6,26 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
+// ── Address → symbol lookup (for display context) ─────────────────────────────
+
+const ADDR_TO_SYMBOL: Record<string, string> = {
+  "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",
+  "0x4200000000000000000000000000000000000006": "WETH",
+  "0x4ed4e862860bed51a9570b96d89af5e1b0efefed": "DEGEN",
+  "0x532f27101965dd16442e59d40670faf5ebb142e4": "BRETT",
+  "0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4": "TOSHI",
+};
+
+function addrToSymbol(addr: string): string {
+  return ADDR_TO_SYMBOL[addr.toLowerCase()] ?? addr.slice(0, 8) + "…";
+}
+
 // ── System prompt ─────────────────────────────────────────────────────────────
-// Goal-based, not scripted. Claude decides what to do, when to do it, and why.
 
 const SYSTEM_PROMPT = `You are an autonomous DeFi portfolio manager running on Base network.
 Your capital is denominated in USDC. Your goal is to grow total portfolio value over time.
 
-━━━ MEMORY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━ MEMORY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 File: memory.json (project root — use Read/Write tools directly, no bash needed)
 - Read it FIRST each cycle to understand your history
 - Write it LAST each cycle to record what you saw and decided
@@ -24,8 +37,8 @@ Memory schema:
   "portfolio_snapshots": [{ "ts": ISO, "usdc": number, "holdings": {SYMBOL: {amount, value_usd}}, "total_usd": number }],
   "trades": [{ "ts": ISO, "action": "buy"|"sell", "token": SYMBOL, "from_amount": string, "to_amount": string, "reason": string, "gas_gwei": number }],
   "price_observations": { "SYMBOL": [{ "ts": ISO, "price_usd": number, "change_24h": number }] },
-  "performance": { "total_trades": number, "profitable_exits": number, "total_pnl_usd": number },
-  "agent_notes": [string]  // your observations, patterns you've noticed
+  "performance": { "total_trades": number, "profitable_exits": number, "total_pnl_usd": number, "total_x402_spent": number },
+  "agent_notes": [string]
 }
 
 ━━━ BASH TOOLS (each call costs USDC via x402 micropayments) ━━━━━━━━━━━━━━━━━
@@ -77,45 +90,91 @@ Memory schema:
     • Recently bought this token (memory shows purchase < 2 cycles ago)
     • Portfolio already concentrated in this token
 
+━━━ NARRATE YOUR COST DECISIONS (IMPORTANT) ━━━━━━━━━━━━━━━━
+  Every time you decide to spend OR skip an API call, say it out loud.
+
+  When skipping to save money:
+    "Skipping BRETT price check — gas is 0.12 gwei, I wouldn't trade at any price right now.
+     Saving $0.002."
+    "Gas too high for trading. Skipping all price checks — saving $0.006 this cycle."
+
+  When spending because it's worth it:
+    "Gas is 0.028 gwei — cheap. Worth spending $0.002 to check DEGEN's price."
+    "DEGEN down 7% — spending $0.01 for a quote, then $0.10 to execute if output looks right."
+
+  This makes your economic reasoning visible and verifiable.
+
 ━━━ YOUR CYCLE PROTOCOL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   1. Read memory.json → understand history, recent patterns, what you hold
-  2. Get balances (cheap, $0.005) → current state
+  2. Get balances ($0.005) → current state
   3. Check gas ($0.001) → gate everything on this
   4. Check prices for tokens on your watchlist + anything you currently hold
-     → be selective. Don't check all 3 tokens if gas is 0.3 gwei and you'd never trade
+     → be selective. If gas is 0.3 gwei and you'd never trade, skip prices entirely
   5. Reason explicitly: what's the best action this cycle?
-     → Consider: which token has best risk/reward? Am I over/under-exposed?
-     → If buying: which of DEGEN/BRETT/TOSHI has the best setup RIGHT NOW?
-     → If holding: say why — don't just say "conditions not met"
-  6. Execute if conviction is high (get quote first, then swap)
-  7. Write memory.json → record portfolio snapshot, prices observed, decision + reasoning
+     → Which token has best risk/reward? Am I over/under-exposed?
+     → Reference memory: has this token dipped before and recovered? How long did it take?
+  6. Execute if conviction is high (quote first, then swap)
+  7. Write memory.json → record portfolio snapshot, prices, decision, reasoning, x402 total spent
 
 ━━━ EFFICIENCY RULE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Each bash tool call costs real USDC. Think before calling.
+  Each bash tool call costs real USDC from your trading capital.
   Bad: Check all 3 token prices even when gas is 0.5 gwei (you'd never trade)
   Good: Check gas first → only proceed to prices if gas is acceptable
-  Every USDC spent on API calls comes out of your trading capital.`;
+  Great: Skip a specific token's price if memory shows it's been flat and nothing changed`;
 
-// ── Helper detection ──────────────────────────────────────────────────────────
+// ── Helper detection with context ─────────────────────────────────────────────
 
-type HelperInfo = { name: string; isPaid: boolean };
+type HelperInfo = { name: string; context: string };
 
 function detectHelper(cmd: string): HelperInfo | null {
-  if (cmd.includes("balances"))  return { name: "get_balances",          isPaid: true };
-  if (cmd.includes("portfolio")) return { name: "get_portfolio",         isPaid: true };
-  if (cmd.includes("history"))   return { name: "get_transaction_history", isPaid: true };
-  if (cmd.includes("gas"))       return { name: "get_gas_prices",        isPaid: true };
-  if (cmd.includes("price"))     return { name: "get_token_price",       isPaid: true };
-  if (cmd.includes("search"))    return { name: "search_token",          isPaid: true };
-  if (cmd.includes("quote"))     return { name: "get_swap_quote",        isPaid: true };
-  if (cmd.includes("swap"))      return { name: "execute_swap",          isPaid: true };
+  if (cmd.includes("balances"))  return { name: "get_balances",            context: "" };
+  if (cmd.includes("portfolio")) return { name: "get_portfolio",           context: "" };
+  if (cmd.includes("history"))   return { name: "get_transaction_history", context: "" };
+  if (cmd.includes("gas"))       return { name: "get_gas_prices",          context: "" };
+
+  if (cmd.includes("price")) {
+    const parts = cmd.trim().split(/\s+/);
+    const idx = parts.findIndex(p => p.includes("price.ts"));
+    const addr = idx >= 0 ? (parts[idx + 1] ?? "") : "";
+    return { name: "get_token_price", context: addrToSymbol(addr) };
+  }
+
+  if (cmd.includes("search")) {
+    const parts = cmd.trim().split(/\s+/);
+    const query = parts[parts.length - 1] ?? "";
+    return { name: "search_token", context: query };
+  }
+
+  if (cmd.includes("quote")) {
+    const parts = cmd.trim().split(/\s+/);
+    const idx = parts.findIndex(p => p.includes("quote.ts"));
+    const from   = idx >= 0 ? addrToSymbol(parts[idx + 1] ?? "") : "?";
+    const to     = idx >= 0 ? addrToSymbol(parts[idx + 2] ?? "") : "?";
+    const amount = idx >= 0 ? (parts[idx + 3] ?? "?") : "?";
+    return { name: "get_swap_quote", context: `${amount} ${from}→${to}` };
+  }
+
+  if (cmd.includes("swap")) {
+    const parts = cmd.trim().split(/\s+/);
+    const idx = parts.findIndex(p => p.includes("swap.ts"));
+    const from   = idx >= 0 ? addrToSymbol(parts[idx + 1] ?? "") : "?";
+    const to     = idx >= 0 ? addrToSymbol(parts[idx + 2] ?? "") : "?";
+    const amount = idx >= 0 ? (parts[idx + 3] ?? "?") : "?";
+    return { name: "execute_swap", context: `${amount} ${from}→${to}` };
+  }
+
   return null;
 }
+
+// ── Cycle counter ─────────────────────────────────────────────────────────────
+
+let _cycleNum = 0;
 
 // ── Main agent run ─────────────────────────────────────────────────────────────
 
 export async function runAgent(walletAddress: string, dryRun: boolean): Promise<void> {
-  display.wake();
+  _cycleNum += 1;
+  display.wake(_cycleNum);
 
   const oauthToken = process.env.CLAUDE_CODE_OAUTH_TOKEN;
   if (!oauthToken) throw new Error("Missing CLAUDE_CODE_OAUTH_TOKEN env variable");
@@ -129,7 +188,6 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
     WALLET_ADDRESS: walletAddress,
   };
 
-  // Track tool-use IDs → names so we can display results properly
   const pendingTools = new Map<string, string>();
 
   const sdkQuery = query({
@@ -141,24 +199,22 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
       systemPrompt: SYSTEM_PROMPT,
       permissionMode: "bypassPermissions",
       allowDangerouslySkipPermissions: true,
-      cwd: ROOT,           // so memory.json paths resolve correctly
+      cwd: ROOT,
       env,
       allowedTools: ["Bash", "Read", "Write"],
     } as Parameters<typeof query>[0]["options"],
   });
 
   for await (const message of sdkQuery) {
-    // ── Assistant turn: tool calls + reasoning text ──────────────────────────
+    // ── Assistant turn ───────────────────────────────────────────────────────
     if (message.type === "assistant") {
       for (const block of message.message.content) {
         const id = "id" in block && typeof block.id === "string" ? block.id : "";
 
-        // Reasoning / decision text
         if ("text" in block && block.text) {
           display.agentText(block.text);
         }
 
-        // Bash → one of the helper scripts
         if ("name" in block && block.name === "Bash") {
           const cmd =
             typeof block.input === "object" && block.input !== null
@@ -167,11 +223,10 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
           const helper = detectHelper(cmd);
           if (helper) {
             if (id) pendingTools.set(id, helper.name);
-            display.toolRequest(helper.name);
+            display.payment(helper.name, helper.context);
           }
         }
 
-        // Read tool — likely memory.json
         if ("name" in block && block.name === "Read") {
           const fp =
             typeof block.input === "object" && block.input !== null
@@ -183,7 +238,6 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
           }
         }
 
-        // Write tool — likely memory.json
         if ("name" in block && block.name === "Write") {
           const fp =
             typeof block.input === "object" && block.input !== null
@@ -199,11 +253,10 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
 
     // ── User turn: tool results ───────────────────────────────────────────────
     if (message.type === "user" && message.tool_use_result !== undefined) {
-      const toolId = message.parent_tool_use_id ?? "";
+      const toolId     = message.parent_tool_use_id ?? "";
       const helperName = pendingTools.get(toolId) ?? "tool";
       pendingTools.delete(toolId);
 
-      // Memory ops: just confirm silently
       if (helperName === "read_memory" || helperName === "write_memory") {
         display.memoryDone(helperName === "write_memory");
         continue;
@@ -217,9 +270,8 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
       try {
         const data = JSON.parse(raw);
         if (!data.error) {
-          display.toolSuccess(helperName, data);
+          display.paymentResult(helperName, data);
 
-          // Surface swap outcome with extra emphasis
           if (helperName === "execute_swap") {
             if (dryRun) {
               display.dryRunResult(
@@ -227,7 +279,6 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
                 (data.to_amount ?? data.estimated_output ?? "?") as string
               );
             } else if (data.tx_hash) {
-              // Determine direction from raw data
               const isToUsdc = (data.to_token ?? "").toLowerCase().includes("833589");
               display.tradeExecuted(
                 data.from_amount ?? "?",
@@ -239,11 +290,10 @@ export async function runAgent(walletAddress: string, dryRun: boolean): Promise<
             }
           }
         } else {
-          display.toolError(helperName, data.error as string);
+          display.paymentError(helperName, data.error as string);
         }
       } catch {
-        // Non-JSON result (e.g. Read tool returns raw content)
-        display.toolSuccess(helperName, { preview: raw.slice(0, 80) });
+        display.paymentResult(helperName, { preview: raw.slice(0, 80) });
       }
     }
   }
