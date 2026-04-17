@@ -1,0 +1,15 @@
+#!/usr/bin/env tsx
+import "dotenv/config";
+import { createX402Client } from "./client.js";
+
+const walletAddress = process.env.WALLET_ADDRESS;
+if (!walletAddress) { console.error(JSON.stringify({ error: "Missing WALLET_ADDRESS" })); process.exit(1); }
+
+try {
+  const client = createX402Client();
+  const res = await client.post("/api/get_portfolio", { wallet_address: walletAddress });
+  console.log(JSON.stringify(res.data));
+} catch (err) {
+  console.error(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));
+  process.exit(1);
+}

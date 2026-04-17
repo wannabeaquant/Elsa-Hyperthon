@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "created_at": null,
+  "last_updated": null,
+  "cycle_count": 0,
+  "portfolio_snapshots": [],
+  "trades": [],
+  "price_observations": {},
+  "performance": {
+    "total_trades": 0,
+    "profitable_exits": 0,
+    "total_pnl_usd": 0
+  },
+  "agent_notes": []
+}
