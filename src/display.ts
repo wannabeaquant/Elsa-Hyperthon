@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { eventBus } from "./eventBus.js";
 
 const ts = () => chalk.dim(`[${new Date().toLocaleTimeString()}]`);
 
@@ -113,6 +114,7 @@ export const display = {
       chalk.dim("  ·  Base Network  ·  Claude-Powered")
     );
     console.log(chalk.bold.cyan("━".repeat(65)));
+    eventBus.emit("header", {});
   },
 
   wake(cycleNum: number) {
@@ -126,6 +128,7 @@ export const display = {
       chalk.bold(`Cycle #${cycleNum}`) +
       chalk.dim(" — waking up, running portfolio cycle.\n")
     );
+    eventBus.emit("wake", { cycleNum });
   },
 
   // ── x402 payment flow ──────────────────────────────────────────────────────
@@ -146,6 +149,7 @@ export const display = {
     console.log(
       `${ts()} ${chalk.dim("   402 intercepted · signing USDC micropayment · verifying...")}`
     );
+    eventBus.emit("payment", { name, context, cost, sessionTotal: _sessionPaid, cycleTotal: _cyclePaid });
   },
 
   paymentResult(name: string, data: unknown, isWeth = false) {
@@ -160,16 +164,19 @@ export const display = {
     const summary = formatResult(name, d);
     const label = isWeth ? chalk.dim("WETH baseline") : "";
     console.log(`${ts()} ${chalk.green("✅")} Paid & verified  →  ${summary}${label ? "  " + label : ""}`);
+    eventBus.emit("paymentResult", { name, data: d, isWeth });
   },
 
   paymentError(name: string, message: string) {
     console.log(`${ts()} ${chalk.red("❌")} ${chalk.bold(name)} failed: ${chalk.red(message)}`);
+    eventBus.emit("paymentError", { name, message });
   },
 
   // ── Free analytics ────────────────────────────────────────────────────────
 
   analyticsRun() {
     console.log(`\n${ts()} ${chalk.bold.blue("🧮")} Running analytics... ${chalk.dim("(free — local computation, no x402)")}`);
+    eventBus.emit("analyticsRun", {});
   },
 
   analyticsResult(data: unknown) {
@@ -233,22 +240,26 @@ export const display = {
         `${ts()} ${chalk.dim("   Net P&L (after API costs):")} ${netStr}`
       );
     }
+    eventBus.emit("analyticsResult", data);
   },
 
   // ── Memory ops ─────────────────────────────────────────────────────────────
 
   memoryRead() {
     console.log(`\n${ts()} ${chalk.blue("📚")} Reading memory...`);
+    eventBus.emit("memoryRead", {});
   },
 
   memoryWrite() {
     console.log(`\n${ts()} ${chalk.blue("💾")} Writing memory...`);
+    eventBus.emit("memoryWrite", {});
   },
 
   memoryDone(wasWrite: boolean) {
     console.log(
       `${ts()} ${chalk.dim(wasWrite ? "   ✓ Memory saved — cycle recorded." : "   ✓ Memory loaded — history ready.")}`
     );
+    eventBus.emit("memoryDone", { wasWrite });
   },
 
   // ── Agent reasoning ────────────────────────────────────────────────────────
@@ -269,6 +280,7 @@ export const display = {
     });
     const indented = lines.join("\n").replace(/\n/g, "\n   ");
     console.log(`   ${indented}`);
+    eventBus.emit("agentText", { text });
   },
 
   // ── Trade outcomes ─────────────────────────────────────────────────────────
@@ -284,6 +296,7 @@ export const display = {
     console.log(`  ${chalk.dim("TxHash:")} ${chalk.cyan(txHash)}`);
     console.log(`  ${chalk.dim("View on BaseScan →")} ${chalk.underline.cyan(`https://basescan.org/tx/${txHash}`)}`);
     console.log(chalk.bold.green("━".repeat(65)) + "\n");
+    eventBus.emit("tradeExecuted", { fromAmount, fromToken, toAmount, toToken, txHash });
   },
 
   dryRunResult(fromAmount: string, toAmount: string) {
@@ -293,6 +306,7 @@ export const display = {
     console.log(`  ${chalk.white(fromAmount)} USDC  →  ${chalk.bold.green(toAmount)}`);
     console.log(`  ${chalk.dim("Set DRY_RUN=false to execute for real.")}`);
     console.log(chalk.bold.yellow("━".repeat(65)) + "\n");
+    eventBus.emit("dryRunResult", { fromAmount, toAmount });
   },
 
   // ── Cycle summary ──────────────────────────────────────────────────────────
@@ -326,9 +340,17 @@ export const display = {
     }
 
     console.log(chalk.bold.cyan("━".repeat(65)) + "\n");
+    eventBus.emit("cycleEnd", {
+      cycleNum: _cycleNum,
+      cyclePaid: _cyclePaid,
+      sessionPaid: _sessionPaid,
+      startPortfolio: _startPortfolio,
+      currentPortfolio: _currentPortfolio,
+    });
   },
 
   error(message: string) {
     console.log(`\n${ts()} ${chalk.red("💥")} Fatal: ${chalk.red(message)}\n`);
+    eventBus.emit("error", { message });
   },
 };
