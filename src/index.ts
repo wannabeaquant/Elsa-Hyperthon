@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { runAgent } from "./agent.js";
 import { display } from "./display.js";
+import { startDashboard } from "./dashboardServer.js";
 
 // ── Env validation ────────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ const INTERVAL_MS = parseInt(process.env.INTERVAL_MS ?? "60000", 10);
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 async function main() {
+  const DASHBOARD_PORT = parseInt(process.env.DASHBOARD_PORT ?? "3000", 10);
+  startDashboard(DASHBOARD_PORT);
   display.header();
 
   console.log(`  Network:    ${USE_MAINNET ? "Base Mainnet" : "Base Sepolia"}`);
