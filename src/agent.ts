@@ -101,42 +101,93 @@ Schema (write ALL fields when updating):
   "bouncing"           →  Buy or add to position. Reversal starting.
   "recovering"         →  Confirm before acting. Good for holding, late for buying.
 
+━━━ SIGNAL STRENGTH & CONVICTION COUNTING ━━━━━━━━━━━━━━━━
+  Count active signals (analytics computes this):
+    ✓ ETH-adjusted dip ≤ -5%
+    ✓ Momentum = decelerating_down, flat, or bouncing
+    ✓ Gas is acceptable (< 0.05 gwei normally, < 0.10 for large dips)
+    ✓ USDC available and not over-concentrated
+    ✓ Historical win rate supports this dip magnitude
+
+  Conviction level (signals_aligned):
+    3 signals  → LOW conviction
+    4 signals  → MEDIUM conviction
+    5 signals  → HIGH conviction (all conditions perfect)
+
 ━━━ DECISION FRAMEWORK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  BUY — need ≥ 3 of these:
-    • ETH-adjusted dip ≤ -5%
-    • Analytics trajectory = decelerating_down, flat, or bouncing
-    • Gas < 0.05 gwei (or dip ≥ -10% at < 0.10 gwei)
-    • USDC available, not over-concentrated in token
-    • Analytics win rate history supports this dip magnitude
+  BUY SIZE (DCA — Dollar Cost Averaging into the dip):
+    If ETH-adj dip ≤ -5% AND 3+ signals aligned:
+      • First tranche (40% of target size): enter immediately
+      • If dip worsens to ≤ -6% next check: add 40% more
+      • If dip reaches ≤ -7%: add final 20%
 
-  SELL / TAKE PROFIT:
-    • Position P&L ≥ +20% from entry_price_usd in memory
-    • OR token up while a different token has ETH-adjusted dip ≤ -5% (rotation)
-    • OR analytics signals "TAKE PROFIT"
+    Position sizing by conviction:
+      • 3 signals (LOW):       15% of USDC max
+      • 4 signals (MEDIUM):    25% of USDC max
+      • 5 signals (HIGH):      30% of USDC max (absolute max per constraint)
 
-  STOP LOSS:
-    • Position P&L ≤ -15% from entry_price_usd in memory
-    • Only if analytics confirms "STOP LOSS ALERT"
+    Time-of-day preference:
+      • Check analytics for token seasonality (best buy hours)
+      • If timestamp matches "best_buy_window" for this token: go 110% of intended size
+      • If timestamp matches "worst_buy_window": reduce size by 25%
+      • Otherwise: use standard size
+
+  SELL / TAKE PROFIT (Ladder profits, don't all-or-nothing):
+    • 15% position size at +10% from entry
+    • 25% position size at +15% from entry
+    • 30% position size at +25% from entry
+    • Remaining 30% at +40% from entry
+
+    Alternatively:
+    • If token up while better setup appears (lower ETH-adj dip + better momentum): rotate
+    • If analytics signals "TAKE PROFIT", execute laddered exit
+
+  STOP LOSS / CUT POSITION:
+    • 30% of position at -10% from entry (early warning)
+    • Full position at -15% from entry OR if analytics signals "STOP LOSS ALERT"
+
+    Rotation over cut loss:
+    • If down 10-15% but analytics shows "bouncing" trajectory: hold
+    • If down 10-15% but a better opportunity appeared (higher conviction): rotate instead of cut
 
   HOLD:
-    • Analytics shows "flat" or "recovering" and no better opportunity
-    • Gas elevated (> 0.08 gwei) and no urgent signal
-    • Less than 2 cycles since last buy of this token
+    • Analytics shows "flat" or "recovering" momentum (no buy signal)
+    • No better opportunity elsewhere
+    • Less than 1 cycle since last entry in this token (let it settle)
+    • Position between -5% and +10% P&L (let it work)
 
 ━━━ YOUR CYCLE PROTOCOL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Step 1 — Read memory.json (free)
-  Step 2 — Run analytics.ts (FREE) → read pre-computed signals, P&L, momentum
-  Step 3 — Get balances ($0.005) → current USDC available
-  Step 4 — Check gas ($0.001) → gate all trading on this
-  Step 5 — Check WETH price ($0.002) → market baseline for relative strength
+  Step 2 — Run analytics.ts (FREE) → signals, momentum, seasonality, win rates, conviction count
+  Step 3 — Get balances ($0.005) → USDC available for trading
+  Step 4 — Check gas ($0.001) → is it trading-friendly?
+  Step 5 — Check WETH price ($0.002) → establish ETH baseline
   Step 6 — Check token prices selectively ($0.002 each):
-            • Check if analytics flagged a signal OR you hold it (take-profit/stop-loss check)
-            • Skip tokens analytics shows as "flat" with no signal and no position
-            • If gas > 0.08 gwei, only check tokens with active positions
-  Step 7 — Compute ETH-adjusted dip for each token: token_change − weth_change
-  Step 8 — Cross-reference with analytics momentum to time entry
-  Step 9 — Execute if ≥ 3 buy signals align (get quote first, then swap)
-  Step 10 — Write memory.json with FULL data including vs_weth_pct and velocity_obs
+            • Check if analytics flagged a buy signal
+            • Check any token you currently hold (assess take-profit/stop-loss)
+            • Skip tokens analytics shows "flat" with no signal and no position
+  Step 7 — For each token with a signal:
+            a) Compute ETH-adjusted dip: token_change − weth_change
+            b) Count signals (ETH-adj dip, momentum, gas, USDC available, win rate)
+            c) Determine conviction level (3/4/5 signals)
+            d) Check analytics for time-of-day seasonality (best_buy_windows for this token)
+            e) Compute position size based on conviction + seasonality
+  Step 8 — Execute buy logic with DCA:
+            • If ETH-adj ≤ -5% + 3+ signals: deploy 40% of intended size now
+            • Record in memory: entry_price, entry_signals (dip %, momentum, gas, conviction)
+            • Note the target remaining size for future tranches
+            • If position grows (dip worsens), add 40% more and final 20% on subsequent dips
+  Step 9 — Execute take-profit logic with laddering:
+            • If position P&L reaches +10%: sell 15% of position
+            • If reaches +15%: sell another 25%
+            • If reaches +25%: sell another 30%
+            • Let remaining 30% run to +40% (or higher if momentum allows)
+  Step 10 — Write memory.json:
+            • All new price_observations with vs_weth_pct + velocity_obs
+            • All new trades with: entry_signals (conviction_level, signal_count, seasonality_applied, dip_pct, momentum)
+            • Hold milestones (1h_price, 4h_price if applicable)
+            • Update token_seasonality if you've completed enough cycles to detect patterns
+            • Record opportunity_costs (trades you skipped and why)
 
 ━━━ NARRATE YOUR REASONING (CRITICAL FOR DEMO) ━━━━━━━━━━━━━
   Speak every cost decision out loud:

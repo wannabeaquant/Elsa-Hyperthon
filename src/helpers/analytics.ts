@@ -70,6 +70,87 @@ function priceMomentum(obs: PriceObs[]): string {
   return "mixed";
 }
 
+function volatilityBands(obs: PriceObs[]): { atr: number; bb_upper: number; bb_lower: number } {
+  if (obs.length < 3) return { atr: 0, bb_upper: 0, bb_lower: 0 };
+  const recent = obs.slice(-14);
+  const prices = recent.map(o => o.price_usd);
+  const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+  const variance = prices.reduce((a, p) => a + Math.pow(p - avg, 2), 0) / prices.length;
+  const stddev = Math.sqrt(variance);
+  const atr = stddev; // simplified ATR
+  return {
+    atr: round6(atr),
+    bb_upper: round6(avg + 2 * stddev),
+    bb_lower: round6(avg - 2 * stddev),
+  };
+}
+
+function timeOfDaySeasonality(trades: Trade[], token: string): {
+  best_hours: number[];
+  worst_hours: number[];
+  recovery_by_hour: Record<number, { avg_pct: number; win_rate: number }>;
+} {
+  const hourBuckets: Record<number, { pcts: number[]; wins: number; total: number }> = {};
+
+  for (const trade of trades) {
+    if (trade.token !== token || trade.action !== "buy") continue;
+    const buyHour = new Date(trade.ts).getUTCHours();
+    if (!hourBuckets[buyHour]) hourBuckets[buyHour] = { pcts: [], wins: 0, total: 0 };
+
+    // Find matching sell for recovery %
+    const sell = trades.find(t => t.ts > trade.ts && t.token === token && t.action === "sell");
+    if (sell?.exit_price_usd && trade.entry_price_usd) {
+      const recovPct = ((sell.exit_price_usd - trade.entry_price_usd) / trade.entry_price_usd) * 100;
+      hourBuckets[buyHour].pcts.push(recovPct);
+      hourBuckets[buyHour].total++;
+      if (recovPct > 0) hourBuckets[buyHour].wins++;
+    }
+  }
+
+  const hourStats: Record<number, { avg_pct: number; win_rate: number }> = {};
+  for (const [hour, bucket] of Object.entries(hourBuckets)) {
+    const h = parseInt(hour);
+    const avgPct = bucket.pcts.length ? bucket.pcts.reduce((a, b) => a + b, 0) / bucket.pcts.length : 0;
+    hourStats[h] = {
+      avg_pct: round1(avgPct),
+      win_rate: round2(bucket.wins / bucket.total),
+    };
+  }
+
+  const bestHours = Object.entries(hourStats)
+    .sort((a, b) => b[1].avg_pct - a[1].avg_pct)
+    .slice(0, 3)
+    .map(([h]) => parseInt(h));
+  const worstHours = Object.entries(hourStats)
+    .sort((a, b) => a[1].avg_pct - b[1].avg_pct)
+    .slice(0, 2)
+    .map(([h]) => parseInt(h));
+
+  return {
+    best_hours: bestHours,
+    worst_hours: worstHours,
+    recovery_by_hour: hourStats,
+  };
+}
+
+function countSignals(
+  eth_adj_dip: number,
+  momentum: string,
+  gas_gwei: number,
+  usdc_available: boolean,
+  win_rate: number | null
+): { count: number; conviction: "low" | "medium" | "high" } {
+  let count = 0;
+  if (eth_adj_dip <= -5) count++;
+  if (["decelerating_down", "flat", "bouncing"].includes(momentum)) count++;
+  if (gas_gwei < 0.05 || (eth_adj_dip <= -8 && gas_gwei < 0.10)) count++;
+  if (usdc_available) count++;
+  if (win_rate !== null && win_rate > 0.5) count++;
+
+  const conviction: "low" | "medium" | "high" = count <= 2 ? "low" : count <= 3 ? "low" : count === 4 ? "medium" : "high";
+  return { count, conviction };
+}
+
 function openPositions(trades: Trade[]): Record<string, { entry_price: number; entry_ts: string }> {
   const pos: Record<string, { entry_price: number; entry_ts: string }> = {};
   for (const t of trades) {
@@ -161,6 +242,18 @@ function analyze(mem: Memory) {
       ? round1(recentAdjusted.reduce((a, b) => a + b, 0) / recentAdjusted.length)
       : null;
 
+    const trajectory = priceMomentum(obs);
+    const vbands = volatilityBands(obs);
+    const seasonality = timeOfDaySeasonality(trades, token);
+    const winRate = exitCount ? wins / exitCount : null;
+    const signalStrength = countSignals(
+      avgAdjusted ?? last.vs_weth_pct ?? 0,
+      trajectory,
+      gasObs[gasObs.length - 1]?.gwei ?? 0.05,
+      true, // assume USDC available in this context
+      winRate
+    );
+
     tokenAnalytics[token] = {
       obs_count:              obs.length,
       last_price:             last.price_usd,
@@ -168,16 +261,22 @@ function analyze(mem: Memory) {
       last_vs_weth_pct:       last.vs_weth_pct ?? null,
       avg_recent_vs_weth_pct: avgAdjusted,
       data_age_hours:         round1(ageMins(last.ts, now) / 60),
-      trajectory:             priceMomentum(obs),
+      trajectory:             trajectory,
       support_est:            round6(support),
       resistance_est:         round6(resistance),
       range_pct:              round1(((resistance - support) / support) * 100),
+      volatility_atr:         vbands.atr,
+      volatility_bb_upper:    vbands.bb_upper,
+      volatility_bb_lower:    vbands.bb_lower,
       currently_held:         token in open,
       completed_exits:        exitCount,
       win_rate:               exitCount ? round2(wins / exitCount) : null,
       avg_recovery_pct:       exitCount ? round1(sumRecovPct / exitCount) : null,
       avg_recovery_hours:     exitCount ? round1(sumRecovHrs / exitCount) : null,
       avg_dip_at_entry_pct:   exitCount ? round1(sumDipAtEntry / exitCount) : null,
+      best_buy_hours_utc:     seasonality.best_hours,
+      worst_buy_hours_utc:    seasonality.worst_hours,
+      signal_strength:        signalStrength,
     };
   }
 
@@ -197,10 +296,16 @@ function analyze(mem: Memory) {
   const signals: string[] = [];
 
   for (const [token, ta] of Object.entries(tokenAnalytics) as [string, any][]) {
-    const traj    = ta.trajectory as string;
-    const last24h = ta.last_change_24h as number;
-    const adjDip  = ta.last_vs_weth_pct as number | null;
-    const ageHrs  = ta.data_age_hours as number;
+    const traj           = ta.trajectory as string;
+    const last24h        = ta.last_change_24h as number;
+    const adjDip         = ta.last_vs_weth_pct as number | null;
+    const ageHrs         = ta.data_age_hours as number;
+    const sigStr         = ta.signal_strength as {count: number, conviction: string};
+    const bestBuyHrs     = ta.best_buy_hours_utc as number[];
+    const volatAtr       = ta.volatility_atr as number;
+    const vbb            = ta.volatility_bb_upper as number;
+    const curPrice       = ta.last_price as number;
+    const currentHour    = now.getUTCHours();
 
     if (ageHrs > 3) {
       signals.push(
@@ -208,52 +313,81 @@ function analyze(mem: Memory) {
       );
     }
 
+    // Seasonality warning
+    if (bestBuyHrs.length > 0 && !bestBuyHrs.includes(currentHour)) {
+      signals.push(
+        `${token}: ⏰ Current hour (${currentHour}:00 UTC) is not optimal. Best buy windows: ${bestBuyHrs.map(h => h + ":00").join(", ")} UTC.`
+      );
+    }
+
     if (!ta.currently_held) {
-      // ETH-adjusted dip signals (stronger signal)
-      if (adjDip !== null && adjDip <= -5 && traj === "decelerating_down") {
+      // High conviction buy (5 signals, or high conviction classification)
+      if (sigStr.conviction === "high" && adjDip !== null && adjDip <= -5 && traj === "decelerating_down") {
         signals.push(
-          `${token}: 🔥 STRONG BUY — ETH-adjusted dip ${adjDip}% with decelerating momentum. ` +
-          `Historical: ${ta.avg_recovery_pct ?? "?"}% recovery in ${ta.avg_recovery_hours ?? "?"}h avg. Entry zone confirmed.`
+          `${token}: 🔥 HIGH CONVICTION BUY (${sigStr.count}/5 signals) — ETH-adj dip ${adjDip}%, decelerating momentum. ` +
+          `Historical: ${ta.avg_recovery_pct}% avg recovery in ${ta.avg_recovery_hours}h. Position size: 30% USDC.`
         );
-      } else if (adjDip !== null && adjDip <= -5 && traj !== "accelerating_down") {
+      } else if (sigStr.conviction === "medium" && adjDip !== null && adjDip <= -5) {
+        // Medium conviction (4 signals)
         signals.push(
-          `${token}: ✅ BUY SIGNAL — ETH-adjusted dip ${adjDip}%. Win rate: ${ta.win_rate !== null ? (ta.win_rate * 100) + "%" : "no history"}. Momentum: ${traj}.`
+          `${token}: ✅ BUY SIGNAL (${sigStr.count}/5 signals) — ETH-adj dip ${adjDip}%. Win rate: ${ta.win_rate !== null ? (ta.win_rate * 100) + "%" : "no history"}. Position size: 25% USDC.`
+        );
+      } else if (sigStr.count >= 3 && adjDip !== null && adjDip <= -6) {
+        // 3+ signals but lower confidence
+        signals.push(
+          `${token}: ⚡ MODERATE SIGNAL (${sigStr.count}/5) — ETH-adj dip ${adjDip}%, momentum ${traj}. Position size: 15% USDC.`
         );
       } else if (adjDip !== null && adjDip > -3 && last24h <= -5) {
         signals.push(
-          `${token}: ⚠ WEAK DIP — ${last24h}% absolute but only ${adjDip}% vs ETH. Market-wide move, not idiosyncratic. Low conviction.`
-        );
-      } else if (last24h <= -6 && adjDip === null && traj === "decelerating_down") {
-        signals.push(
-          `${token}: BUY CANDIDATE — ${last24h}% dip, decelerating. No ETH baseline yet — check WETH to confirm.`
+          `${token}: ⚠ WEAK DIP — ${last24h}% absolute but only ${adjDip}% vs ETH. Market-wide move. Skip or small size (10%).`
         );
       } else if (last24h <= -5 && traj === "accelerating_down") {
         signals.push(
-          `${token}: ⏳ WAIT — ${last24h}% dip but momentum still accelerating. Don't catch a falling knife.`
+          `${token}: ⏳ WAIT — ${last24h}% dip (momentum still accelerating ${traj}). One more cycle for stabilization.`
+        );
+      } else if (adjDip !== null && adjDip <= -4 && traj === "flat") {
+        signals.push(
+          `${token}: 👀 WATCH — ${adjDip}% dip with flat momentum (stabilizing?). If dips ≤ -5% next check: buy signal.`
         );
       }
     } else {
-      // Position management signals
+      // Position management signals (with laddered exits)
       const pos = (positions[token] ?? {}) as any;
-      if (pos.pnl_pct >= 20) {
+      if (pos.pnl_pct >= 40) {
         signals.push(
-          `${token}: 💰 TAKE PROFIT — position up ${pos.pnl_pct}% from entry. Target hit.`
+          `${token}: 💰 FINAL EXIT — position up ${pos.pnl_pct}% from entry. Sell remaining 30% ladder.`
+        );
+      } else if (pos.pnl_pct >= 25) {
+        signals.push(
+          `${token}: 💸 TAKE PROFIT LADDER 3 — position up ${pos.pnl_pct}%. Sell 30% more (ladder 3 of 4).`
+        );
+      } else if (pos.pnl_pct >= 15) {
+        signals.push(
+          `${token}: 💵 TAKE PROFIT LADDER 2 — position up ${pos.pnl_pct}%. Sell 25% (ladder 2 of 4).`
+        );
+      } else if (pos.pnl_pct >= 10) {
+        signals.push(
+          `${token}: 💴 TAKE PROFIT LADDER 1 — position up ${pos.pnl_pct}%. Sell 15% (ladder 1 of 4).`
         );
       } else if (pos.pnl_pct <= -15) {
         signals.push(
-          `${token}: 🛑 STOP LOSS — position down ${pos.pnl_pct}% from entry. Review immediately.`
+          `${token}: 🛑 STOP LOSS — position down ${pos.pnl_pct}% from entry. Exit or rotate to better opportunity.`
+        );
+      } else if (pos.pnl_pct <= -10) {
+        signals.push(
+          `${token}: ⚠ EARLY WARNING — position down ${pos.pnl_pct}%. Sell 30% to reduce exposure if momentum doesn't recover.`
         );
       } else if (traj === "recovering" || traj === "bouncing") {
         signals.push(
-          `${token}: ↗ held position showing ${traj} — hold, trend turning in our favour.`
+          `${token}: ↗ RECOVERY SIGNAL — momentum ${traj}. Hold and add if dips further (DCA).`
         );
-      } else if (pos.days_held > 2 && traj === "flat") {
+      } else if (pos.days_held > 3 && traj === "flat" && pos.pnl_pct < 0) {
         signals.push(
-          `${token}: ⏸ flat for ${pos.days_held} days. Consolidation. Watch for breakout — could go either way.`
+          `${token}: ⏸ Flat for ${pos.days_held} days at ${pos.pnl_pct}% P&L. Could break either way. Consider 50% exit.`
         );
       } else {
         signals.push(
-          `${token}: holding at ${pos.pnl_pct}% P&L, ${pos.days_held}d held, ${pos.pct_to_tp}% to take-profit target.`
+          `${token}: Holding at ${pos.pnl_pct}% P&L, ${pos.days_held}d held, momentum ${traj}, ${Math.abs(pos.pct_to_tp)}% to next ladder.`
         );
       }
     }
