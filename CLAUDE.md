@@ -73,7 +73,7 @@ Each helper is a standalone script, reads env vars, makes one Elsa API call, pri
 Claude invokes these via Bash; the x402 interceptor handles payment transparently.
 
 **Free (local computation, no API):**
-- `src/helpers/analytics.ts` — reads memory.json, outputs pre-computed signals, momentum, volatility bands, time-of-day seasonality, conviction count. Runs first every cycle.
+- `src/helpers/analytics.ts` — reads memory.json, outputs pre-computed signals, momentum, volatility bands, time-of-day seasonality, conviction count. Runs first every cycle. Includes **data-sufficiency gates**: `win_rate` is suppressed (set to `null` with a `win_rate_note`) until ≥3 completed exits; `trajectory` is `"insufficient_data"` until ≥5 price observations; seasonality is withheld until ≥3 hour buckets have data. Every token with thin history gets a `📊 LEARNING` signal so Claude (and judges) know signals are directional, not statistically validated.
 
 **Portfolio Data:**
 - `src/helpers/balances.ts` — Quick balance check ($0.005)
@@ -157,7 +157,7 @@ Before spending a cent on API calls, Claude runs `src/helpers/analytics.ts` — 
 
 3. **Volatility bands** — ATR (Average True Range) and Bollinger Bands (±2 STD) computed from price_observations in memory. Tells Claude whether the current move is large or small relative to recent history.
 
-4. **Time-of-day seasonality** — scans past trades grouped by UTC hour, computes average recovery % and win rate per hour. Learns that DEGEN dips at 08-10 UTC recover better than 20-21 UTC.
+4. **Time-of-day seasonality** — scans past trades grouped by UTC hour, computes average recovery % and win rate per hour. Learns that DEGEN dips at 08-10 UTC recover better than 20-21 UTC. **Requires ≥3 completed hour buckets before reporting best/worst hours** — suppressed with a `seasonality_note` until then.
 
 5. **Signal counting** — aggregates 5 binary signals into conviction score.
 
@@ -265,8 +265,8 @@ Full `memory.json` schema (write all fields on every update):
   "performance": {
     "total_trades": number, "profitable_exits": number,
     "total_pnl_usd": number, "win_rate": number,
-    "avg_hold_days": number, "max_drawdown_pct": number,
-    "best_trade_pnl": number, "worst_trade_pnl": number,
+    "max_drawdown_pct": number,
+    "best_trade_pnl": number,
     "total_x402_spent": number, "pnl_after_api_costs": number
   },
   "token_config": {
@@ -377,7 +377,7 @@ npx tsx src/helpers/balances.ts
 - Only monitors 3 tokens (DEGEN, BRETT, TOSHI) by default
 - memory.json is a local file — no backup, no cloud sync
 - DRY_RUN controls ALL swaps — no per-trade simulation override
-- Seasonality patterns need ~10+ trades per token to be meaningful (memory is pre-seeded with 14 cycles to bootstrap)
+- Seasonality patterns need ≥3 completed hour buckets to report; analytics explicitly withholds and labels thin data with `📊 LEARNING` signals
 - No limit orders — all entries are market orders
 
 ---
@@ -487,10 +487,10 @@ Show tx hash → BaseScan link in terminal → confirmed on-chain.
 - **Repo:** `https://github.com/wannabeaquant/Elsa-Hyperthon`
 - **System prompt:** `src/agent.ts` → `SYSTEM_PROMPT` constant (~210 lines)
 - **Decision logic detail:** Signal counting, DCA, laddering all in system prompt
-- **Seeded history:** `memory.json` has 14 pre-built cycles including 3 real trades (1 profitable DEGEN exit +$1.72, BRETT position currently held -5.5% from entry)
+- **Seeded history:** `memory.json` has 14 pre-built cycles including 3 trades (1 profitable DEGEN exit +$1.72, BRETT position currently held -5.5% from entry). Note: this is seed data for demo bootstrapping — analytics.ts will label it `📊 LEARNING` and suppress win-rate/seasonality signals until real trade history accumulates.
 
 ---
 
 **Last Updated:** April 17, 2026
 **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6`)
-**Status:** Production-ready for hackathon demo. Analytics-first conviction framework live.
+**Status:** Production-ready for hackathon demo. Analytics-first conviction framework live. Data-sufficiency gates in analytics.ts prevent thin-sample signals from appearing statistically validated.

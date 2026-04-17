@@ -138,14 +138,16 @@ function countSignals(
   momentum: string,
   gas_gwei: number,
   usdc_available: boolean,
-  win_rate: number | null
+  win_rate: number | null,
+  win_rate_sample: number
 ): { count: number; conviction: "low" | "medium" | "high" } {
   let count = 0;
   if (eth_adj_dip <= -5) count++;
   if (["decelerating_down", "flat", "bouncing"].includes(momentum)) count++;
   if (gas_gwei < 0.05 || (eth_adj_dip <= -8 && gas_gwei < 0.10)) count++;
   if (usdc_available) count++;
-  if (win_rate !== null && win_rate > 0.5) count++;
+  // Only count win_rate signal when sample is statistically meaningful
+  if (win_rate !== null && win_rate > 0.5 && win_rate_sample >= 3) count++;
 
   const conviction: "low" | "medium" | "high" = count <= 2 ? "low" : count <= 3 ? "low" : count === 4 ? "medium" : "high";
   return { count, conviction };
@@ -250,9 +252,15 @@ function analyze(mem: Memory) {
       avgAdjusted ?? last.vs_weth_pct ?? 0,
       trajectory,
       gasObs[gasObs.length - 1]?.gwei ?? 0.05,
-      true, // assume USDC available in this context
-      winRate
+      true,
+      winRate,
+      exitCount
     );
+
+    // Flags for downstream signal generation and demo transparency
+    const enoughPriceData   = obs.length >= 5;
+    const enoughTradeData   = exitCount >= 3;
+    const enoughSeasonality = Object.keys(seasonality.recovery_by_hour).length >= 3;
 
     tokenAnalytics[token] = {
       obs_count:              obs.length,
@@ -261,7 +269,7 @@ function analyze(mem: Memory) {
       last_vs_weth_pct:       last.vs_weth_pct ?? null,
       avg_recent_vs_weth_pct: avgAdjusted,
       data_age_hours:         round1(ageMins(last.ts, now) / 60),
-      trajectory:             trajectory,
+      trajectory:             enoughPriceData ? trajectory : "insufficient_data",
       support_est:            round6(support),
       resistance_est:         round6(resistance),
       range_pct:              round1(((resistance - support) / support) * 100),
@@ -270,13 +278,16 @@ function analyze(mem: Memory) {
       volatility_bb_lower:    vbands.bb_lower,
       currently_held:         token in open,
       completed_exits:        exitCount,
-      win_rate:               exitCount ? round2(wins / exitCount) : null,
-      avg_recovery_pct:       exitCount ? round1(sumRecovPct / exitCount) : null,
-      avg_recovery_hours:     exitCount ? round1(sumRecovHrs / exitCount) : null,
-      avg_dip_at_entry_pct:   exitCount ? round1(sumDipAtEntry / exitCount) : null,
-      best_buy_hours_utc:     seasonality.best_hours,
-      worst_buy_hours_utc:    seasonality.worst_hours,
+      win_rate:               enoughTradeData ? round2(wins / exitCount) : null,
+      win_rate_note:          enoughTradeData ? null : `only ${exitCount} exit(s) — not statistically meaningful`,
+      avg_recovery_pct:       enoughTradeData ? round1(sumRecovPct / exitCount) : null,
+      avg_recovery_hours:     enoughTradeData ? round1(sumRecovHrs / exitCount) : null,
+      avg_dip_at_entry_pct:   enoughTradeData ? round1(sumDipAtEntry / exitCount) : null,
+      best_buy_hours_utc:     enoughSeasonality ? seasonality.best_hours : [],
+      worst_buy_hours_utc:    enoughSeasonality ? seasonality.worst_hours : [],
+      seasonality_note:       enoughSeasonality ? null : `only ${Object.keys(seasonality.recovery_by_hour).length} hour bucket(s) — not enough for seasonality`,
       signal_strength:        signalStrength,
+      data_sufficient:        enoughPriceData && enoughTradeData,
     };
   }
 
@@ -302,10 +313,8 @@ function analyze(mem: Memory) {
     const ageHrs         = ta.data_age_hours as number;
     const sigStr         = ta.signal_strength as {count: number, conviction: string};
     const bestBuyHrs     = ta.best_buy_hours_utc as number[];
-    const volatAtr       = ta.volatility_atr as number;
-    const vbb            = ta.volatility_bb_upper as number;
-    const curPrice       = ta.last_price as number;
     const currentHour    = now.getUTCHours();
+    const dataSufficient = ta.data_sufficient as boolean;
 
     if (ageHrs > 3) {
       signals.push(
@@ -313,7 +322,15 @@ function analyze(mem: Memory) {
       );
     }
 
-    // Seasonality warning
+    // Warn when we don't yet have enough history for reliable signals
+    if (!dataSufficient) {
+      const notes: string[] = [];
+      if (ta.obs_count < 5)       notes.push(`only ${ta.obs_count} price observations (need ≥5 for momentum)`);
+      if (ta.completed_exits < 3) notes.push(`only ${ta.completed_exits} completed exit(s) (need ≥3 for win-rate signal)`);
+      signals.push(`${token}: 📊 LEARNING — ${notes.join("; ")}. Signals are directional only, not statistically validated.`);
+    }
+
+    // Seasonality warning — only when we have enough data
     if (bestBuyHrs.length > 0 && !bestBuyHrs.includes(currentHour)) {
       signals.push(
         `${token}: ⏰ Current hour (${currentHour}:00 UTC) is not optimal. Best buy windows: ${bestBuyHrs.map(h => h + ":00").join(", ")} UTC.`
@@ -323,14 +340,19 @@ function analyze(mem: Memory) {
     if (!ta.currently_held) {
       // High conviction buy (5 signals, or high conviction classification)
       if (sigStr.conviction === "high" && adjDip !== null && adjDip <= -5 && traj === "decelerating_down") {
+        const histNote = ta.avg_recovery_pct !== null
+          ? `Historical (${ta.completed_exits} exits): ${ta.avg_recovery_pct}% avg recovery in ${ta.avg_recovery_hours}h.`
+          : `No exit history yet — framework signal only.`;
         signals.push(
           `${token}: 🔥 HIGH CONVICTION BUY (${sigStr.count}/5 signals) — ETH-adj dip ${adjDip}%, decelerating momentum. ` +
-          `Historical: ${ta.avg_recovery_pct}% avg recovery in ${ta.avg_recovery_hours}h. Position size: 30% USDC.`
+          `${histNote} Position size: 30% USDC.`
         );
       } else if (sigStr.conviction === "medium" && adjDip !== null && adjDip <= -5) {
-        // Medium conviction (4 signals)
+        const winNote = ta.win_rate !== null
+          ? `Win rate: ${(ta.win_rate * 100).toFixed(0)}% (${ta.completed_exits} exits).`
+          : `Win rate: no history yet.`;
         signals.push(
-          `${token}: ✅ BUY SIGNAL (${sigStr.count}/5 signals) — ETH-adj dip ${adjDip}%. Win rate: ${ta.win_rate !== null ? (ta.win_rate * 100) + "%" : "no history"}. Position size: 25% USDC.`
+          `${token}: ✅ BUY SIGNAL (${sigStr.count}/5 signals) — ETH-adj dip ${adjDip}%. ${winNote} Position size: 25% USDC.`
         );
       } else if (sigStr.count >= 3 && adjDip !== null && adjDip <= -6) {
         // 3+ signals but lower confidence

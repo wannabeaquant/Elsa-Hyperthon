@@ -143,10 +143,8 @@
     "profitable_exits": 1,
     "total_pnl_usd": 1.72,
     "win_rate": 1.0,
-    "avg_hold_days": 1.3,
     "max_drawdown_pct": -5.5,
     "best_trade_pnl": 1.72,
-    "worst_trade_pnl": -0.54,
     "total_x402_spent": 0.521,
     "pnl_after_api_costs": 1.199
   },
