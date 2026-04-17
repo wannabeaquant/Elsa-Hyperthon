@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "cycle_count": 17,
-  "last_updated": "2026-04-17T12:00:00.000Z",
+  "cycle_count": 18,
+  "last_updated": "2026-04-17T12:03:00.000Z",
   "portfolio_snapshots": [
     { "ts": "2026-04-16T08:00:00.000Z", "usdc": 25.00, "holdings": {}, "total_usd": 25.00 },
     { "ts": "2026-04-16T09:02:00.000Z", "usdc": 25.00, "holdings": {}, "total_usd": 25.00 },
@@ -17,7 +17,8 @@
     { "ts": "2026-04-17T10:45:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
     { "ts": "2026-04-17T11:05:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
     { "ts": "2026-04-17T11:20:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
-    { "ts": "2026-04-17T12:00:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 }
+    { "ts": "2026-04-17T12:00:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 },
+    { "ts": "2026-04-17T12:03:00.000Z", "usdc": 26.68, "holdings": { "BRETT": { "amount": "10124", "value_usd": 4.71 } }, "total_usd": 31.39 }
   ],
   "trades": [
     {
