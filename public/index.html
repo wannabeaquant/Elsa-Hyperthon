@@ -1,777 +1,816 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>⚡ ELSA — DIP BUYER AGENT</title>
 <style>
-  :root {
-    --bg:        #060b18;
-    --card:      #0c1526;
-    --border:    #1a2d4f;
-    --border2:   #223a60;
-    --cyan:      #00d4ff;
-    --cyan-dim:  #0090b0;
-    --green:     #00ff88;
-    --green-dim: #00aa55;
-    --red:       #ff3355;
-    --yellow:    #ffcc00;
-    --purple:    #aa66ff;
-    --muted:     #4a6080;
-    --text:      #c8d8ee;
-    --text-dim:  #6a8aaa;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; overflow: hidden; }
+:root {
+  --bg:        #050a14;
+  --surface:   #0a1628;
+  --surface2:  #0f1e35;
+  --border:    #182d4a;
+  --border2:   #1e3a5f;
+  --cyan:      #00d4ff;
+  --cyan2:     #00a8cc;
+  --green:     #00e676;
+  --green2:    #00c853;
+  --red:       #ff1744;
+  --yellow:    #ffd600;
+  --yellow2:   #f9a825;
+  --purple:    #b388ff;
+  --purple2:   #7c4dff;
+  --muted:     #37526e;
+  --text:      #cde4f8;
+  --text2:     #7a9bbf;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:13px;overflow:hidden}
 
-  /* ── Header ─────────────────────────────────────────────────────── */
-  #header {
-    display: flex; align-items: center; gap: 0;
-    height: 52px; border-bottom: 1px solid var(--border);
-    background: #08101f; padding: 0 20px;
-  }
-  .logo { font-size: 18px; font-weight: 700; color: var(--cyan); letter-spacing: 2px; margin-right: 16px; }
-  .logo span { color: var(--text); font-weight: 400; }
-  .hpill {
-    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
-    border: 1px solid; margin: 0 5px; letter-spacing: 0.5px;
-  }
-  .hpill.live  { color: var(--green); border-color: var(--green); background: #00ff8810; }
-  .hpill.dry   { color: var(--yellow); border-color: var(--yellow); background: #ffcc0010; }
-  .hpill.base  { color: var(--cyan-dim); border-color: var(--border2); }
-  .hsep { width: 1px; height: 28px; background: var(--border); margin: 0 14px; }
-  .hstat { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0 10px; }
-  .hstat .label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-  .hstat .value { font-size: 14px; font-weight: 700; color: var(--text); }
-  .hstat .value.cyan  { color: var(--cyan); }
-  .hstat .value.green { color: var(--green); }
-  .hstat .value.yellow{ color: var(--yellow); }
-  #hclock { margin-left: auto; font-size: 12px; color: var(--muted); }
-  #hstatus-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-left: 10px;
-    box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  #next-cycle-wrap { display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 12px; }
-  #next-cycle-bar-bg { width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden; }
-  #next-cycle-bar { height:100%;width:0%;background:var(--cyan);border-radius:2px;transition:width 1s linear; }
-  #next-cycle-label { font-size:9px;color:var(--muted);letter-spacing:1px; }
+/* ── HEADER ─────────────────────────────────── */
+#hdr{
+  display:flex;align-items:center;height:56px;
+  background:linear-gradient(90deg,#07101f,#0a1628);
+  border-bottom:1px solid var(--border2);
+  padding:0 20px;gap:0;position:relative;z-index:10;
+}
+.logo{font-size:17px;font-weight:700;letter-spacing:3px;color:var(--cyan);margin-right:18px;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;border:1px solid;margin:0 4px}
+.badge-base{color:var(--cyan2);border-color:var(--border2)}
+.badge-live{color:var(--green);border-color:var(--green2);background:#00e67612}
+.badge-dry{color:var(--yellow);border-color:var(--yellow2);background:#ffd60010}
+.sep{width:1px;height:30px;background:var(--border2);margin:0 16px}
+.hstat{display:flex;flex-direction:column;align-items:flex-start;padding:0 12px;gap:1px}
+.hstat .hl{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.hstat .hv{font-size:15px;font-weight:700;color:var(--text);line-height:1}
+.hstat .hv.c{color:var(--cyan)}.hstat .hv.g{color:var(--green)}.hstat .hv.y{color:var(--yellow)}
+#hclock{margin-left:auto;font-size:11px;color:var(--muted);letter-spacing:1px}
 
-  /* ── Layout ─────────────────────────────────────────────────────── */
-  #layout {
-    display: grid;
-    grid-template-columns: 260px 1fr 280px;
-    height: calc(100vh - 52px);
-    overflow: hidden;
-  }
+/* cycle progress */
+#cywrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:0 14px}
+#cybar-bg{width:90px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+#cybar{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width 1s linear}
+#cylbl{font-size:9px;color:var(--muted);letter-spacing:.5px}
 
-  /* ── Panels ─────────────────────────────────────────────────────── */
-  .panel { border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; }
-  .panel:last-child { border-right: none; }
-  .panel-title {
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
-    padding: 10px 14px 6px; border-bottom: 1px solid var(--border); position: sticky; top: 0;
-    background: var(--bg); z-index: 5; display: flex; align-items: center; gap: 6px;
-  }
-  .panel-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+/* ── LAYOUT ──────────────────────────────────── */
+#layout{display:grid;grid-template-columns:260px 1fr 290px;height:calc(100vh - 56px);overflow:hidden}
+.col{border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column}
+.col:last-child{border-right:none}
+.col-title{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);
+  padding:10px 16px 8px;border-bottom:1px solid var(--border);
+  background:var(--bg);display:flex;align-items:center;gap:7px;flex-shrink:0
+}
+.col-title .cd{width:5px;height:5px;border-radius:50%}
+.col-body{flex:1;overflow-y:auto;overflow-x:hidden}
 
-  /* ── Cards ──────────────────────────────────────────────────────── */
-  .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 8px; margin: 10px; padding: 12px;
-  }
-  .card-title { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+/* ── CARDS (left panel) ──────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:10px;padding:14px}
+.card-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
 
-  /* ── Portfolio card ─────────────────────────────────────────────── */
-  #portfolio-total { font-size: 26px; font-weight: 700; color: var(--cyan); line-height: 1; }
-  #portfolio-pnl   { font-size: 13px; margin-top: 3px; }
-  .holdings-row { display:flex; justify-content:space-between; padding: 5px 0; border-bottom:1px solid var(--border); font-size:12px; }
-  .holdings-row:last-child { border-bottom:none; }
-  .holdings-row .sym { color: var(--cyan-dim); font-weight:600; }
-  .holdings-row .val { color: var(--text); }
+/* portfolio */
+#port-total{font-size:28px;font-weight:700;color:var(--cyan);line-height:1;letter-spacing:-1px}
+#port-pnl{font-size:12px;margin-top:4px;color:var(--muted)}
+.hold-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.hold-row:last-child{border-bottom:none}
+.hold-sym{font-size:12px;font-weight:700;color:var(--cyan2)}
+.hold-val{font-size:12px;color:var(--text)}
 
-  /* ── Token cards ────────────────────────────────────────────────── */
-  .token-card { transition: border-color 0.3s; }
-  .token-card.signal-high   { border-color: var(--green); }
-  .token-card.signal-medium { border-color: var(--yellow); }
-  .token-card.signal-low    { border-color: var(--muted); }
-  .token-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .token-name { font-size:15px; font-weight:700; color:var(--text); }
-  .conviction-badge {
-    font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; letter-spacing:1px; text-transform:uppercase;
-  }
-  .conviction-badge.high   { color:var(--green);  background:#00ff8815; border:1px solid var(--green-dim); }
-  .conviction-badge.medium { color:var(--yellow); background:#ffcc0015; border:1px solid #aa8800; }
-  .conviction-badge.low    { color:var(--muted);  background:#1a2d4f; border:1px solid var(--border); }
-  .conviction-badge.none   { color:var(--muted);  background:#1a2d4f; border:1px solid var(--border); }
-  .token-price { font-size:18px; font-weight:700; color:var(--text); }
-  .token-change { font-size:12px; }
-  .token-change.up   { color: var(--green); }
-  .token-change.down { color: var(--red); }
-  .eth-adj { font-size:11px; color:var(--muted); margin-top:2px; }
-  .eth-adj.dip { color:var(--yellow); font-weight:600; }
-  .signals-row { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
-  .sig-pill {
-    font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid;
-    color:var(--muted); border-color:var(--border);
-  }
-  .sig-pill.on { color:var(--green); border-color:var(--green-dim); background:#00ff8810; }
+/* gas meter */
+.gas-wrap{display:flex;align-items:center;gap:12px}
+#gas-num{font-size:22px;font-weight:700}
+#gas-num.ok{color:var(--green)}#gas-num.warn{color:var(--yellow)}#gas-num.bad{color:var(--red)}
+.gas-info .gl{font-size:11px;font-weight:600;color:var(--text)}
+.gas-info .gs{font-size:10px;color:var(--muted);margin-top:2px}
 
-  /* ── Terminal ───────────────────────────────────────────────────── */
-  #terminal {
-    background: #030810; height: 100%; overflow-y: auto;
-    padding: 10px 0; display:flex; flex-direction:column;
-  }
-  .term-entry {
-    padding: 4px 14px; line-height: 1.5; animation: fadeIn 0.2s ease;
-    border-left: 2px solid transparent;
-  }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-  .term-entry.type-agent  { border-left-color: var(--cyan); }
-  .term-entry.type-pay    { border-left-color: var(--yellow); }
-  .term-entry.type-result { border-left-color: var(--green-dim); }
-  .term-entry.type-memory { border-left-color: var(--purple); }
-  .term-entry.type-trade  { border-left-color: var(--green); background:#00ff8808; }
-  .term-entry.type-dryrun { border-left-color: var(--yellow); background:#ffcc0008; }
-  .term-entry.type-error  { border-left-color: var(--red); background:#ff335508; }
-  .term-entry.type-cycle  { border-left-color: var(--cyan-dim); background:#00d4ff06; }
-  .term-entry.type-analytics { border-left-color: var(--purple); }
-  .term-ts  { color: var(--muted); font-size:11px; margin-right:8px; }
-  .term-icon{ margin-right:6px; }
-  .term-text { color: var(--text); white-space:pre-wrap; word-break:break-word; }
-  .term-text .cost  { color: var(--yellow); font-weight:600; }
-  .term-text .tool  { color: var(--cyan); }
-  .term-text .good  { color: var(--green); }
-  .term-text .warn  { color: var(--yellow); }
-  .term-text .err   { color: var(--red); }
-  .term-text .dim   { color: var(--muted); }
-  .term-trade-box {
-    margin: 2px 0; padding: 8px 12px; border-radius:6px;
-    border: 1px solid var(--green); background:#00ff8812;
-  }
-  .term-trade-box .trow { display:flex; gap:8px; align-items:center; }
-  .term-trade-box .tamt { font-size:15px; font-weight:700; color:var(--green); }
-  .term-trade-box .tarrow { color:var(--muted); }
-  .term-trade-box .ttxlink { font-size:11px; color:var(--cyan); text-decoration:none; }
-  .term-trade-box .ttxlink:hover { text-decoration:underline; }
+/* stats grid */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sbox{background:#07101f;border:1px solid var(--border);border-radius:8px;padding:10px}
+.sbox .sv{font-size:17px;font-weight:700;color:var(--text)}
+.sbox .sk{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
 
-  /* ── Right panel ─────────────────────────────────────────────────── */
-  .payment-row {
-    display:flex; align-items:center; gap:8px; padding:7px 14px;
-    border-bottom:1px solid var(--border); animation:fadeIn 0.2s ease;
-  }
-  .payment-row:hover { background:var(--card); }
-  .pay-icon { font-size:14px; flex-shrink:0; }
-  .pay-tool { color:var(--cyan); font-size:12px; flex:1; }
-  .pay-cost { color:var(--yellow); font-weight:700; font-size:12px; white-space:nowrap; }
-  .pay-status { font-size:10px; color:var(--muted); }
-  .pay-status.ok  { color:var(--green-dim); }
-  .pay-status.err { color:var(--red); }
+/* token cards */
+.tcard{transition:border-color .3s,box-shadow .3s}
+.tcard.sig-high{border-color:var(--green);box-shadow:0 0 12px #00e67614}
+.tcard.sig-med{border-color:var(--yellow);box-shadow:0 0 12px #ffd60010}
+.tcard.sig-low{border-color:var(--muted)}
+.th{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tsym{font-size:16px;font-weight:700}
+.conv{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.conv.high{color:var(--green);border-color:var(--green2);background:#00e67612}
+.conv.medium{color:var(--yellow);border-color:var(--yellow2);background:#ffd60010}
+.conv.low{color:var(--muted);border-color:var(--border2)}
+.conv.none{color:var(--muted);border-color:var(--border)}
+.tprice{font-size:19px;font-weight:700}
+.tchange{font-size:12px;margin-top:1px}.tchange.up{color:var(--green)}.tchange.dn{color:var(--red)}
+.tadj{font-size:11px;color:var(--muted);margin-top:2px}
+.tadj.dip{color:var(--yellow);font-weight:600}
+.sigs{display:flex;gap:4px;margin-top:9px;flex-wrap:wrap}
+.spill{font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border);color:var(--muted)}
+.spill.on{color:var(--green);border-color:var(--green2);background:#00e67610}
 
-  .trade-row {
-    padding:8px 14px; border-bottom:1px solid var(--border); animation:fadeIn 0.3s ease;
-  }
-  .trade-row:hover { background:var(--card); }
-  .trade-top { display:flex; justify-content:space-between; align-items:center; }
-  .trade-action-buy  { color:var(--green);  font-weight:700; font-size:12px; }
-  .trade-action-sell { color:var(--red);    font-weight:700; font-size:12px; }
-  .trade-token  { color:var(--cyan); font-weight:600; font-size:13px; }
-  .trade-pnl.pos { color:var(--green); font-size:12px; font-weight:600; }
-  .trade-pnl.neg { color:var(--red);   font-size:12px; font-weight:600; }
-  .trade-bottom { font-size:11px; color:var(--muted); margin-top:2px; }
+/* ── LIVE FEED (center) ──────────────────────── */
+#feed{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:#040910}
 
-  /* ── Scrollbar ───────────────────────────────────────────────────── */
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius:2px; }
+/* event cards */
+.ev{border-radius:10px;overflow:hidden;animation:slideIn .25s ease;border:1px solid var(--border)}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ev-hd{display:flex;align-items:center;gap:8px;padding:9px 14px}
+.ev-icon{font-size:15px;line-height:1}
+.ev-title{font-weight:700;font-size:12px;flex:1}
+.ev-time{font-size:10px;color:var(--muted)}
+.ev-body{padding:0 14px 12px;font-size:12px;line-height:1.6;color:var(--text2)}
+.ev-body p{margin-bottom:4px}
+.ev-body p:last-child{margin-bottom:0}
 
-  /* ── Cycle bar ──────────────────────────────────────────────────── */
-  #cycle-progress-wrap { padding:10px 14px; border-bottom:1px solid var(--border); }
-  #cycle-bar-bg { width:100%; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
-  #cycle-bar    { height:100%; width:0%; background: linear-gradient(90deg,var(--cyan),var(--purple)); border-radius:2px; transition:width 1s linear; }
-  #cycle-label  { font-size:10px; color:var(--muted); margin-top:4px; text-align:right; }
+/* cycle start */
+.ev-wake{background:linear-gradient(135deg,#0a1628,#0d1f3a);border-color:var(--cyan)}
+.ev-wake .ev-hd{background:linear-gradient(90deg,#0f2040,transparent)}
+.ev-wake .ev-title{color:var(--cyan);font-size:14px;letter-spacing:1px}
 
-  /* ── Gas indicator ──────────────────────────────────────────────── */
-  #gas-card { display:flex; align-items:center; gap:10px; }
-  #gas-value { font-size:20px; font-weight:700; }
-  #gas-value.green  { color:var(--green); }
-  #gas-value.yellow { color:var(--yellow); }
-  #gas-value.red    { color:var(--red); }
-  #gas-label { font-size:11px; color:var(--muted); }
+/* analytics */
+.ev-analytics{background:var(--surface);border-color:#4a3070}
+.ev-analytics .ev-hd{background:linear-gradient(90deg,#1a1040,transparent)}
+.ev-analytics .ev-title{color:var(--purple)}
 
-  /* ── Stat grid ──────────────────────────────────────────────────── */
-  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .stat-box { background:#08101f; border:1px solid var(--border); border-radius:6px; padding:8px; }
-  .stat-box .sval { font-size:16px; font-weight:700; color:var(--text); }
-  .stat-box .slabel { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
+/* payment pending */
+.ev-pay{background:var(--surface);border-color:#4a3800}
+.ev-pay .ev-hd{background:linear-gradient(90deg,#1e1500,transparent)}
+.ev-pay .ev-title{color:var(--yellow)}
 
-  /* ── Connecting overlay ─────────────────────────────────────────── */
-  #connecting {
-    position:fixed; inset:0; background:#060b18ee; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:16px; z-index:100;
-  }
-  #connecting .logo2 { font-size:32px; font-weight:700; color:var(--cyan); letter-spacing:4px; }
-  #connecting .sub   { color:var(--muted); font-size:13px; animation:blink 1.5s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  #connecting.hidden { display:none; }
+/* payment result */
+.ev-result{background:var(--surface);border-color:#0e3020}
+.ev-result .ev-hd{background:linear-gradient(90deg,#061a10,transparent)}
+.ev-result .ev-title{color:var(--green)}
 
-  .section-divider {
-    font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted);
-    padding:6px 14px 3px; background:var(--bg);
-  }
+/* agent reasoning */
+.ev-agent{background:#030c1a;border-color:var(--border2)}
+.ev-agent .ev-hd{background:linear-gradient(90deg,#071428,transparent);padding-bottom:6px}
+.ev-agent .ev-title{color:var(--text);font-size:13px}
+.ev-agent .ev-body{padding-top:2px;color:var(--text);font-size:12.5px;line-height:1.7}
+/* typewriter cursor */
+.cursor{display:inline-block;width:2px;height:14px;background:var(--cyan);margin-left:2px;animation:blink .7s infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* cost highlight within agent text */
+.ev-agent .ev-body .hl-cost{color:var(--yellow);font-weight:700}
+.ev-agent .ev-body .hl-action{color:var(--green);font-weight:700}
+.ev-agent .ev-body .hl-skip{color:var(--text2)}
+
+/* memory */
+.ev-memory{background:var(--surface);border-color:#2a1a4a}
+.ev-memory .ev-hd{background:linear-gradient(90deg,#140a28,transparent)}
+.ev-memory .ev-title{color:var(--purple)}
+
+/* trade */
+.ev-trade{background:linear-gradient(135deg,#061a10,#0a2418);border-color:var(--green2);box-shadow:0 0 20px #00e67618}
+.ev-trade .ev-hd{background:linear-gradient(90deg,#0a2818,transparent)}
+.ev-trade .ev-title{color:var(--green);font-size:14px}
+
+/* dryrun */
+.ev-dry{background:linear-gradient(135deg,#181000,#221800);border-color:var(--yellow2)}
+.ev-dry .ev-hd{background:linear-gradient(90deg,#201400,transparent)}
+.ev-dry .ev-title{color:var(--yellow);font-size:14px}
+
+/* cycle end */
+.ev-end{background:linear-gradient(135deg,#07101f,#0d1828);border-color:var(--cyan2)}
+.ev-end .ev-hd{background:linear-gradient(90deg,#0b1830,transparent)}
+.ev-end .ev-title{color:var(--cyan)}
+
+/* error */
+.ev-error{background:linear-gradient(135deg,#1a0508,#200810);border-color:var(--red)}
+.ev-error .ev-hd{background:linear-gradient(90deg,#200508,transparent)}
+.ev-error .ev-title{color:var(--red)}
+
+/* inline pills */
+.pill{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:700;border:1px solid}
+.pill-tool{color:var(--cyan2);border-color:var(--border2);background:#0a1628}
+.pill-cost{color:var(--yellow);border-color:#4a3800;background:#181000}
+.pill-up{color:var(--green);border-color:var(--green2);background:#00e67610}
+.pill-dn{color:var(--red);border-color:#4a0010;background:#1a0008}
+.pill-ok{color:var(--green);border-color:var(--green2)}
+.pill-warn{color:var(--yellow);border-color:var(--yellow2)}
+.pill-bad{color:var(--red);border-color:#4a0010}
+
+/* signal grid in analytics card */
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.sig-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:#07101f}
+.sig-item.buy{border-color:var(--green2);background:#00e67608}
+.sig-item.warn{border-color:var(--yellow2);background:#ffd60008}
+.sig-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sig-item.buy .sig-dot{background:var(--green)}
+.sig-item.warn .sig-dot{background:var(--yellow)}
+.sig-item .sig-txt{font-size:11px;color:var(--text2)}
+
+/* trade box inside card */
+.trade-box{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:#061810;border:1px solid var(--green2);margin-top:6px}
+.trade-from{font-size:16px;font-weight:700;color:var(--text)}
+.trade-arrow{color:var(--muted);font-size:18px}
+.trade-to{font-size:16px;font-weight:700;color:var(--green)}
+.tx-link{display:block;margin-top:6px;font-size:11px;color:var(--cyan);text-decoration:none}
+.tx-link:hover{text-decoration:underline}
+
+/* cycle summary grid */
+.cysum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.cystat{background:#07101f;border:1px solid var(--border);border-radius:6px;padding:8px 10px;text-align:center}
+.cystat .csv{font-size:16px;font-weight:700}
+.cystat .csk{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* pulsing status */
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--yellow);animation:pulse .8s infinite;margin-right:5px;vertical-align:middle}
+.status-dot.ok{background:var(--green);animation:none}
+.status-dot.err{background:var(--red);animation:none}
+
+/* ── RIGHT PANEL ─────────────────────────────── */
+.pay-row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);transition:background .2s}
+.pay-row:hover{background:var(--surface)}
+.pay-ico{font-size:14px;flex-shrink:0}
+.pay-tool{flex:1;font-size:11px;color:var(--cyan2)}
+.pay-amt{font-size:12px;font-weight:700;color:var(--yellow);white-space:nowrap}
+.pay-st{font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid}
+.pay-st.pending{color:var(--yellow);border-color:#4a3800;animation:blink 1s infinite}
+.pay-st.ok{color:var(--green);border-color:var(--green2)}
+.pay-st.err{color:var(--red);border-color:#4a0010}
+
+.tr-row{padding:10px 14px;border-bottom:1px solid var(--border);transition:background .2s}
+.tr-row:hover{background:var(--surface)}
+.tr-top{display:flex;justify-content:space-between;align-items:center}
+.tr-act-buy{color:var(--green);font-weight:700;font-size:12px}
+.tr-act-sell{color:var(--red);font-weight:700;font-size:12px}
+.tr-sym{color:var(--cyan);font-weight:700;font-size:13px}
+.tr-pnl.pos{color:var(--green);font-size:12px;font-weight:700}
+.tr-pnl.neg{color:var(--red);font-size:12px;font-weight:700}
+.tr-sub{font-size:10px;color:var(--muted);margin-top:3px}
+
+.sec-div{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 14px 4px;background:var(--bg);border-bottom:1px solid var(--border)}
+
+/* ── SCROLLBAR ───────────────────────────────── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── CONNECT OVERLAY ─────────────────────────── */
+#overlay{position:fixed;inset:0;background:#050a14f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100}
+#overlay.hidden{display:none}
+.ov-logo{font-size:36px;font-weight:700;color:var(--cyan);letter-spacing:4px}
+.ov-sub{color:var(--muted);font-size:13px;animation:blink 1.5s infinite}
 </style>
 </head>
 <body>
 
-<!-- Connecting overlay -->
-<div id="connecting">
-  <div class="logo2">⚡ ELSA</div>
-  <div class="sub">Connecting to agent...</div>
+<div id="overlay">
+  <div class="ov-logo">⚡ ELSA</div>
+  <div class="ov-sub">Connecting to agent...</div>
 </div>
 
-<!-- Header -->
-<div id="header">
-  <div class="logo">⚡ ELSA <span>DIP-BUYER</span></div>
-  <div class="hpill base">BASE MAINNET</div>
-  <div id="mode-pill" class="hpill dry">DRY RUN</div>
-  <div class="hsep"></div>
-  <div class="hstat">
-    <div class="label">Cycle</div>
-    <div class="value cyan" id="h-cycle">#—</div>
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo"><div class="logo-dot"></div>ELSA</div>
+  <div class="badge badge-base">BASE MAINNET</div>
+  <div class="badge badge-dry" id="mode-badge">DRY RUN</div>
+  <div class="sep"></div>
+  <div class="hstat"><div class="hl">Cycle</div><div class="hv c" id="h-cycle">#—</div></div>
+  <div class="hstat"><div class="hl">Portfolio</div><div class="hv" id="h-port">$—</div></div>
+  <div class="hstat"><div class="hl">P&amp;L</div><div class="hv" id="h-pnl">—</div></div>
+  <div class="hstat"><div class="hl">Session Cost</div><div class="hv y" id="h-cost">$0.000</div></div>
+  <div class="sep"></div>
+  <div id="cywrap">
+    <div id="cylbl">NEXT CYCLE</div>
+    <div id="cybar-bg"><div id="cybar"></div></div>
   </div>
-  <div class="hstat">
-    <div class="label">Portfolio</div>
-    <div class="value" id="h-portfolio">$—</div>
-  </div>
-  <div class="hstat">
-    <div class="label">Session Cost</div>
-    <div class="value yellow" id="h-cost">$0.000</div>
-  </div>
-  <div class="hstat">
-    <div class="label">P&amp;L</div>
-    <div class="value" id="h-pnl">—</div>
-  </div>
-  <div class="hsep"></div>
-  <div id="next-cycle-wrap">
-    <div id="next-cycle-label" class="label">NEXT CYCLE</div>
-    <div id="next-cycle-bar-bg"><div id="next-cycle-bar"></div></div>
-  </div>
-  <div id="hclock">—:—:—</div>
-  <div id="hstatus-dot"></div>
+  <div id="hclock">—</div>
 </div>
 
-<!-- Layout -->
+<!-- LAYOUT -->
 <div id="layout">
 
-  <!-- LEFT: Portfolio + Tokens -->
-  <div class="panel" id="left-panel">
-    <div class="panel-title"><div class="dot"></div> Portfolio &amp; Tokens</div>
+  <!-- LEFT -->
+  <div class="col">
+    <div class="col-title"><div class="cd" style="background:var(--cyan)"></div>Portfolio &amp; Signals</div>
+    <div class="col-body">
 
-    <!-- Portfolio -->
-    <div class="card">
-      <div class="card-title">Portfolio Value</div>
-      <div id="portfolio-total">$—</div>
-      <div id="portfolio-pnl" style="color:var(--muted)">Loading...</div>
-      <div style="margin-top:10px;" id="holdings-list"></div>
-    </div>
+      <div class="card">
+        <div class="card-label">Portfolio Value</div>
+        <div id="port-total">$—</div>
+        <div id="port-pnl">Loading...</div>
+        <div style="margin-top:10px" id="holdings"></div>
+      </div>
 
-    <!-- Gas -->
-    <div class="card">
-      <div class="card-title">Gas · Base Network</div>
-      <div id="gas-card">
-        <div id="gas-value" class="green">—</div>
-        <div>
-          <div style="font-weight:600;color:var(--text)">gwei</div>
-          <div id="gas-label">Checking...</div>
+      <div class="card">
+        <div class="card-label">Gas · Base Network</div>
+        <div class="gas-wrap">
+          <div id="gas-num" class="ok">—</div>
+          <div class="gas-info">
+            <div class="gl">gwei</div>
+            <div class="gs" id="gas-lbl">Waiting...</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Performance Stats -->
-    <div class="card">
-      <div class="card-title">Performance</div>
-      <div class="stat-grid">
-        <div class="stat-box"><div class="sval" id="stat-trades">—</div><div class="slabel">Total Trades</div></div>
-        <div class="stat-box"><div class="sval" id="stat-wins">—</div><div class="slabel">Wins</div></div>
-        <div class="stat-box"><div class="sval" id="stat-pnl">—</div><div class="slabel">Net P&amp;L</div></div>
-        <div class="stat-box"><div class="sval" id="stat-x402">—</div><div class="slabel">x402 Spent</div></div>
+      <div class="card">
+        <div class="card-label">Performance</div>
+        <div class="sgrid">
+          <div class="sbox"><div class="sv" id="s-trades">—</div><div class="sk">Trades</div></div>
+          <div class="sbox"><div class="sv" id="s-wins">—</div><div class="sk">Wins</div></div>
+          <div class="sbox"><div class="sv" id="s-pnl">—</div><div class="sk">Net P&amp;L</div></div>
+          <div class="sbox"><div class="sv" id="s-x402">—</div><div class="sk">x402 Spent</div></div>
+        </div>
       </div>
-    </div>
 
-    <!-- Token Cards -->
-    <div class="card token-card" id="card-DEGEN">
-      <div class="token-header">
-        <div class="token-name">DEGEN</div>
-        <div class="conviction-badge none" id="conv-DEGEN">—</div>
+      <div class="card tcard" id="tc-DEGEN">
+        <div class="th"><span class="tsym">DEGEN</span><span class="conv none" id="cv-DEGEN">—</span></div>
+        <div class="tprice" id="tp-DEGEN">$—</div>
+        <div class="tchange" id="tch-DEGEN">—</div>
+        <div class="tadj" id="taj-DEGEN"></div>
+        <div class="sigs" id="ts-DEGEN"></div>
       </div>
-      <div class="token-price" id="price-DEGEN">$—</div>
-      <div class="token-change" id="change-DEGEN">—</div>
-      <div class="eth-adj" id="adj-DEGEN"></div>
-      <div class="signals-row" id="signals-DEGEN"></div>
-    </div>
 
-    <div class="card token-card" id="card-BRETT">
-      <div class="token-header">
-        <div class="token-name">BRETT</div>
-        <div class="conviction-badge none" id="conv-BRETT">—</div>
+      <div class="card tcard" id="tc-BRETT">
+        <div class="th"><span class="tsym">BRETT</span><span class="conv none" id="cv-BRETT">—</span></div>
+        <div class="tprice" id="tp-BRETT">$—</div>
+        <div class="tchange" id="tch-BRETT">—</div>
+        <div class="tadj" id="taj-BRETT"></div>
+        <div class="sigs" id="ts-BRETT"></div>
       </div>
-      <div class="token-price" id="price-BRETT">$—</div>
-      <div class="token-change" id="change-BRETT">—</div>
-      <div class="eth-adj" id="adj-BRETT"></div>
-      <div class="signals-row" id="signals-BRETT"></div>
-    </div>
 
-    <div class="card token-card" id="card-TOSHI">
-      <div class="token-header">
-        <div class="token-name">TOSHI</div>
-        <div class="conviction-badge none" id="conv-TOSHI">—</div>
+      <div class="card tcard" id="tc-TOSHI">
+        <div class="th"><span class="tsym">TOSHI</span><span class="conv none" id="cv-TOSHI">—</span></div>
+        <div class="tprice" id="tp-TOSHI">$—</div>
+        <div class="tchange" id="tch-TOSHI">—</div>
+        <div class="tadj" id="taj-TOSHI"></div>
+        <div class="sigs" id="ts-TOSHI"></div>
       </div>
-      <div class="token-price" id="price-TOSHI">$—</div>
-      <div class="token-change" id="change-TOSHI">—</div>
-      <div class="eth-adj" id="adj-TOSHI"></div>
-      <div class="signals-row" id="signals-TOSHI"></div>
+
     </div>
   </div>
 
-  <!-- CENTER: Terminal -->
-  <div class="panel" style="border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden;">
-    <div class="panel-title"><div class="dot" style="background:var(--green)"></div> Claude Agent Terminal</div>
-    <div id="cycle-progress-wrap">
-      <div id="cycle-bar-bg"><div id="cycle-bar"></div></div>
-      <div id="cycle-label">Waiting for first cycle...</div>
-    </div>
-    <div id="terminal"></div>
+  <!-- CENTER: LIVE FEED -->
+  <div class="col" style="border-right:1px solid var(--border)">
+    <div class="col-title"><div class="cd" style="background:var(--green)"></div>Live Agent Feed</div>
+    <div id="feed"></div>
   </div>
 
-  <!-- RIGHT: Payments + Trades -->
-  <div class="panel" style="display:flex;flex-direction:column;overflow:hidden;">
-    <div class="panel-title" style="position:sticky;top:0;"><div class="dot" style="background:var(--yellow)"></div> x402 Micropayments</div>
-    <div id="payments-list" style="flex-shrink:0;max-height:45%;overflow-y:auto;border-bottom:1px solid var(--border);">
-      <div style="padding:12px 14px;color:var(--muted);font-size:12px;">Waiting for payments...</div>
+  <!-- RIGHT -->
+  <div class="col" style="overflow:hidden">
+    <div class="col-title"><div class="cd" style="background:var(--yellow)"></div>x402 Payments</div>
+    <div id="pay-list" style="flex:0 0 45%;overflow-y:auto;border-bottom:1px solid var(--border)">
+      <div style="padding:14px;color:var(--muted);font-size:12px">Waiting for payments...</div>
     </div>
-    <div class="section-divider">Trade History</div>
-    <div id="trades-list" style="flex:1;overflow-y:auto;">
-      <div style="padding:12px 14px;color:var(--muted);font-size:12px;">No trades yet.</div>
+    <div class="sec-div">Trade History</div>
+    <div id="tr-list" style="flex:1;overflow-y:auto">
+      <div style="padding:14px;color:var(--muted);font-size:12px">No trades yet.</div>
     </div>
   </div>
 
 </div>
 
 <script>
-// ── Pending payment context (name → context string) ──────────────────────────
-const pendingCtx = {};
-
-// ── State ────────────────────────────────────────────────────────────────────
-const state = {
-  cycleNum: 0,
-  sessionPaid: 0,
-  portfolio: 0,
-  startPortfolio: 0,
-  intervalMs: 60000,
-  lastCycleEnd: null,
-  payments: [],
-  trades: [],
-  wethChange: null,
-  prices: {},  // token -> {price, change}
-  convictions: {},
-  signals: {},
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const S = {
+  cycle:0, sessionPaid:0, portfolio:0, startPortfolio:0,
+  intervalMs:60000, cycleStart:null, wethChange:null,
+  pendingPayCards:{},   // tool name → DOM element (for live update on result)
+  pendingCtx:{},        // tool name → context string
 };
 
-// ── Clock ────────────────────────────────────────────────────────────────────
-setInterval(() => {
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+setInterval(()=>{
   document.getElementById('hclock').textContent = new Date().toLocaleTimeString();
-}, 1000);
+},1000);
 
-// ── Cycle progress bar ───────────────────────────────────────────────────────
-let cycleStart = null;
-let cycleInterval = 60000;
-setInterval(() => {
-  if (!cycleStart) return;
-  const elapsed = Date.now() - cycleStart;
-  const pct = Math.min(100, (elapsed / cycleInterval) * 100);
-  document.getElementById('next-cycle-bar').style.width = pct + '%';
-  const rem = Math.max(0, Math.round((cycleInterval - elapsed) / 1000));
-  document.getElementById('cycle-label').textContent = `Next cycle in ${rem}s`;
-}, 500);
+// ── CYCLE BAR ─────────────────────────────────────────────────────────────────
+setInterval(()=>{
+  if(!S.cycleStart) return;
+  const pct = Math.min(100,(Date.now()-S.cycleStart)/S.intervalMs*100);
+  document.getElementById('cybar').style.width = pct+'%';
+  const rem = Math.max(0,Math.round((S.intervalMs-(Date.now()-S.cycleStart))/1000));
+  document.getElementById('cylbl').textContent = `NEXT IN ${rem}s`;
+},500);
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function fmtTime(isoOrNow) {
-  const d = isoOrNow ? new Date(isoOrNow) : new Date();
-  return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-function fmtUSD(n) { return '$' + Number(n).toFixed(2); }
-function fmtCost(n) { return '$' + Number(n).toFixed(3); }
-function scrollTerminal() {
-  const t = document.getElementById('terminal');
-  t.scrollTop = t.scrollHeight;
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const ts = iso => iso ? new Date(iso).toLocaleTimeString('en-US',{hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'}) : new Date().toLocaleTimeString('en-US',{hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const usd  = n => '$'+Number(n).toFixed(2);
+const cost = n => '$'+Number(n).toFixed(3);
+const esc  = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function scrollFeed(){
+  const f=$('feed'); f.scrollTop=f.scrollHeight;
 }
 
-// ── Terminal entry builder ────────────────────────────────────────────────────
-function addTermEntry(type, icon, html, ts) {
-  const t = document.getElementById('terminal');
-  const div = document.createElement('div');
-  div.className = `term-entry type-${type}`;
-  div.innerHTML = `<span class="term-ts">${fmtTime(ts)}</span><span class="term-icon">${icon}</span><span class="term-text">${html}</span>`;
-  t.appendChild(div);
-  // Keep max 300 entries
-  while (t.children.length > 300) t.removeChild(t.firstChild);
-  scrollTerminal();
+// ── TYPEWRITER ────────────────────────────────────────────────────────────────
+function typeWriter(bodyEl, rawText, speed=12){
+  // Highlight cost/skip lines vs action lines as we type
+  const lines = rawText.split('\n');
+  let lineIdx=0, charIdx=0, buffer='';
+
+  const cursor = document.createElement('span');
+  cursor.className='cursor';
+  bodyEl.appendChild(cursor);
+
+  const interval = setInterval(()=>{
+    if(lineIdx >= lines.length){ clearInterval(interval); cursor.remove(); return; }
+    const line = lines[lineIdx];
+    if(charIdx < line.length){
+      buffer += line[charIdx];
+      charIdx++;
+      // Re-render with syntax highlighting
+      let cls='';
+      if(/\$[0-9]|gwei|skip|saving|too expensive|preserve capital|conserving/i.test(line)) cls='hl-cost';
+      else if(/buying|selling|executing|rotating|taking profit|cutting|swap|BUY|SELL/i.test(line)) cls='hl-action';
+      else cls='hl-skip';
+      bodyEl.querySelectorAll('p').forEach((p,i)=>{if(i===lineIdx)p.remove()});
+      const p=document.createElement('p');
+      p.className=cls; p.textContent=buffer;
+      bodyEl.insertBefore(p, cursor);
+    } else {
+      // Finish line
+      lineIdx++; charIdx=0; buffer='';
+    }
+    scrollFeed();
+  }, speed);
 }
 
-// ── Payment feed ─────────────────────────────────────────────────────────────
-function addPaymentRow(icon, tool, cost, status, statusClass) {
-  const list = document.getElementById('payments-list');
-  // Remove placeholder
-  const ph = list.querySelector('[data-ph]');
-  if (ph) ph.remove();
-
-  const div = document.createElement('div');
-  div.className = 'payment-row';
-  div.innerHTML = `
-    <div class="pay-icon">${icon}</div>
-    <div class="pay-tool">${tool}</div>
-    <div class="pay-cost">${cost}</div>
-    <div class="pay-status ${statusClass}">${status}</div>`;
-  list.insertBefore(div, list.firstChild);
-  while (list.children.length > 30) list.removeChild(list.lastChild);
+// ── FEED CARD BUILDER ─────────────────────────────────────────────────────────
+function card(evClass, icon, title, time, bodyHTML){
+  const f=$('feed');
+  const el=document.createElement('div');
+  el.className=`ev ev-${evClass}`;
+  el.innerHTML=`
+    <div class="ev-hd">
+      <span class="ev-icon">${icon}</span>
+      <span class="ev-title">${title}</span>
+      <span class="ev-time">${ts(time)}</span>
+    </div>
+    <div class="ev-body">${bodyHTML}</div>`;
+  f.appendChild(el);
+  while(f.children.length>200) f.removeChild(f.firstChild);
+  scrollFeed();
+  return el;
 }
 
-// ── Trade feed ───────────────────────────────────────────────────────────────
-function addTradeRow(action, token, amount, pnl, note, ts) {
-  const list = document.getElementById('trades-list');
-  const ph = list.querySelector('[data-ph]');
-  if (ph) ph.remove();
+function agentCard(rawText, time){
+  const f=$('feed');
+  const el=document.createElement('div');
+  el.className='ev ev-agent';
+  el.innerHTML=`
+    <div class="ev-hd">
+      <span class="ev-icon">🤖</span>
+      <span class="ev-title">Claude Reasoning</span>
+      <span class="ev-time">${ts(time)}</span>
+    </div>
+    <div class="ev-body" id="ag-body-${Date.now()}"></div>`;
+  f.appendChild(el);
+  while(f.children.length>200) f.removeChild(f.firstChild);
+  scrollFeed();
+  const body = el.querySelector('.ev-body');
+  typeWriter(body, rawText.trim());
+  return el;
+}
 
-  const pnlHtml = pnl != null
-    ? `<span class="trade-pnl ${pnl >= 0 ? 'pos' : 'neg'}">${pnl >= 0 ? '+' : ''}${fmtUSD(pnl)}</span>`
-    : '';
-  const div = document.createElement('div');
-  div.className = 'trade-row';
-  div.innerHTML = `
-    <div class="trade-top">
-      <span><span class="trade-action-${action}">${action.toUpperCase()}</span> <span class="trade-token">${token}</span></span>
+// ── PAYMENT ROWS (right panel) ────────────────────────────────────────────────
+function addPayRow(tool, ctx, amount){
+  const list=$('pay-list');
+  list.querySelector('[data-ph]')?.remove();
+  const el=document.createElement('div');
+  el.className='pay-row';
+  el.innerHTML=`
+    <div class="pay-ico">💸</div>
+    <div class="pay-tool">${tool}${ctx?` <span style="color:var(--muted)">[${ctx}]</span>`:''}</div>
+    <div class="pay-amt">${amount}</div>
+    <div class="pay-st pending" data-st>402…</div>`;
+  list.insertBefore(el, list.firstChild);
+  while(list.children.length>30) list.removeChild(list.lastChild);
+  return el;
+}
+
+function resolvePayRow(el, ok, label){
+  const st = el?.querySelector('[data-st]');
+  if(!st) return;
+  st.className = `pay-st ${ok?'ok':'err'}`;
+  st.textContent = ok ? '✓' : '✗';
+}
+
+function addTradeRow(action, sym, from, pnl, note, time){
+  const list=$('tr-list');
+  list.querySelector('[data-ph]')?.remove();
+  const pnlHtml = pnl!=null
+    ? `<span class="tr-pnl ${pnl>=0?'pos':'neg'}">${pnl>=0?'+':''}${usd(pnl)}</span>` : '';
+  const el=document.createElement('div');
+  el.className='tr-row';
+  el.innerHTML=`
+    <div class="tr-top">
+      <span><span class="tr-act-${action}">${action.toUpperCase()}</span> <span class="tr-sym">${sym}</span></span>
       ${pnlHtml}
     </div>
-    <div class="trade-bottom">${note} · ${fmtTime(ts)}</div>`;
-  list.insertBefore(div, list.firstChild);
+    <div class="tr-sub">${esc(note||'')} · ${ts(time)}</div>`;
+  list.insertBefore(el, list.firstChild);
 }
 
-// ── Token card updater ───────────────────────────────────────────────────────
-const TOKENS = ['DEGEN', 'BRETT', 'TOSHI'];
-function updateTokenCard(symbol, price, change, adjChange, conviction) {
-  const priceEl  = document.getElementById(`price-${symbol}`);
-  const changeEl = document.getElementById(`change-${symbol}`);
-  const adjEl    = document.getElementById(`adj-${symbol}`);
-  const convEl   = document.getElementById(`conv-${symbol}`);
-  const cardEl   = document.getElementById(`card-${symbol}`);
-  if (!priceEl) return;
-
-  if (price != null)  priceEl.textContent = '$' + Number(price).toFixed(price < 0.01 ? 6 : 4);
-  if (change != null) {
-    changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '% 24h';
-    changeEl.className = 'token-change ' + (change >= 0 ? 'up' : 'down');
+// ── TOKEN CARD UPDATER ────────────────────────────────────────────────────────
+function updateToken(sym, price, change, adj, conviction){
+  if(price!=null){
+    $(`tp-${sym}`).textContent = '$'+Number(price).toFixed(price<0.01?6:4);
   }
-  if (adjChange != null) {
-    adjEl.textContent = 'ETH-adj: ' + (adjChange >= 0 ? '+' : '') + adjChange.toFixed(1) + '%' + (adjChange <= -5 ? ' ← REAL DIP' : '');
-    adjEl.className = 'eth-adj' + (adjChange <= -5 ? ' dip' : '');
+  if(change!=null){
+    const el=$(`tch-${sym}`);
+    el.textContent=(change>=0?'+':'')+change.toFixed(2)+'% 24h';
+    el.className='tchange '+(change>=0?'up':'dn');
   }
-  if (conviction != null) {
-    const cl = conviction.toLowerCase();
-    convEl.textContent = conviction.toUpperCase();
-    convEl.className = 'conviction-badge ' + cl;
-    if (cardEl) {
-      cardEl.className = 'card token-card ' + (cl === 'high' ? 'signal-high' : cl === 'medium' ? 'signal-medium' : cl === 'low' ? 'signal-low' : '');
-    }
+  if(adj!=null){
+    const el=$(`taj-${sym}`);
+    el.textContent='ETH-adj: '+(adj>=0?'+':'')+adj.toFixed(1)+'%'+(adj<=-5?' ← REAL DIP':'');
+    el.className='tadj'+(adj<=-5?' dip':'');
+  }
+  if(conviction!=null){
+    const cl=conviction.toLowerCase();
+    const el=$(`cv-${sym}`);
+    el.textContent=cl.toUpperCase(); el.className='conv '+cl;
+    const card=$(`tc-${sym}`);
+    if(card) card.className='card tcard '+(cl==='high'?'sig-high':cl==='medium'?'sig-med':cl==='low'?'sig-low':'');
   }
 }
 
-function renderSignals(symbol, signalList) {
-  const el = document.getElementById(`signals-${symbol}`);
-  if (!el || !signalList) return;
-  const SIGNAL_LABELS = ['ETH-adj ≤-5%', 'Momentum OK', 'Gas OK', 'USDC avail', 'Win rate'];
-  el.innerHTML = SIGNAL_LABELS.map((s, i) => {
-    const on = signalList[i];
-    return `<span class="sig-pill ${on ? 'on' : ''}">${s}</span>`;
-  }).join('');
-}
-
-// ── Header updater ───────────────────────────────────────────────────────────
-function updateHeader() {
-  document.getElementById('h-cycle').textContent = state.cycleNum ? '#' + state.cycleNum : '#—';
-  document.getElementById('h-cost').textContent = fmtCost(state.sessionPaid);
-  if (state.portfolio > 0) {
-    document.getElementById('h-portfolio').textContent = fmtUSD(state.portfolio);
-    const pnl = state.portfolio - state.startPortfolio;
-    const pnlEl = document.getElementById('h-pnl');
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl);
-    pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+// ── HEADER ────────────────────────────────────────────────────────────────────
+function updateHeader(){
+  $('h-cycle').textContent = S.cycle ? '#'+S.cycle : '#—';
+  $('h-cost').textContent  = cost(S.sessionPaid);
+  if(S.portfolio>0){
+    $('h-port').textContent = usd(S.portfolio);
+    const pnl = S.portfolio - S.startPortfolio;
+    $('h-pnl').textContent  = (pnl>=0?'+':'')+usd(pnl);
+    $('h-pnl').style.color  = pnl>=0 ? 'var(--green)' : 'var(--red)';
   }
 }
 
-// ── Bootstrap from memory ────────────────────────────────────────────────────
-function bootstrapFromMemory(mem) {
-  // Performance
-  const perf = mem.performance || {};
-  document.getElementById('stat-trades').textContent = perf.total_trades ?? '—';
-  document.getElementById('stat-wins').textContent   = perf.profitable_exits ?? '—';
-  const netPnl = (perf.total_pnl_usd ?? 0) - (perf.total_x402_spent ?? 0);
-  const pnlEl = document.getElementById('stat-pnl');
-  pnlEl.textContent = (netPnl >= 0 ? '+' : '') + fmtUSD(netPnl);
-  pnlEl.style.color = netPnl >= 0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('stat-x402').textContent = fmtCost(perf.total_x402_spent ?? 0);
+// ── BOOTSTRAP FROM MEMORY ─────────────────────────────────────────────────────
+function bootstrap(mem){
+  const perf = mem.performance||{};
+  $('s-trades').textContent = perf.total_trades??'0';
+  $('s-wins').textContent   = perf.profitable_exits??'0';
+  const net = (perf.total_pnl_usd||0)-(perf.total_x402_spent||0);
+  $('s-pnl').textContent    = (net>=0?'+':'')+usd(net);
+  $('s-pnl').style.color    = net>=0?'var(--green)':'var(--red)';
+  $('s-x402').textContent   = cost(perf.total_x402_spent||0);
 
-  // Latest portfolio snapshot
-  const snaps = mem.portfolio_snapshots || [];
-  if (snaps.length > 0) {
-    const latest = snaps[snaps.length - 1];
-    state.portfolio = latest.total_usd || 0;
-    state.startPortfolio = (snaps[0] || {}).total_usd || state.portfolio;
-    document.getElementById('portfolio-total').textContent = fmtUSD(state.portfolio);
-    const pnl = state.portfolio - state.startPortfolio;
-    const pnlEl = document.getElementById('portfolio-pnl');
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl) + ' since start';
-    pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
-
-    // Holdings
-    const holdEl = document.getElementById('holdings-list');
-    holdEl.innerHTML = '';
-    const holdings = latest.holdings || {};
-    const row = (sym, val) => {
-      const d = document.createElement('div');
-      d.className = 'holdings-row';
-      d.innerHTML = `<span class="sym">${sym}</span><span class="val">${val}</span>`;
-      holdEl.appendChild(d);
+  const snaps = mem.portfolio_snapshots||[];
+  if(snaps.length){
+    const latest = snaps[snaps.length-1];
+    S.portfolio = latest.total_usd||0;
+    S.startPortfolio = (snaps[0]||{}).total_usd||S.portfolio;
+    $('port-total').textContent = usd(S.portfolio);
+    const pnl = S.portfolio - S.startPortfolio;
+    $('port-pnl').textContent = (pnl>=0?'+':'')+usd(pnl)+' since start';
+    $('port-pnl').style.color = pnl>=0?'var(--green)':'var(--red)';
+    // holdings
+    const h=$('holdings'); h.innerHTML='';
+    const row=(sym,val)=>{
+      const d=document.createElement('div');
+      d.className='hold-row';
+      d.innerHTML=`<span class="hold-sym">${sym}</span><span class="hold-val">${val}</span>`;
+      h.appendChild(d);
     };
-    row('USDC', fmtUSD(latest.usdc || 0));
-    for (const [sym, h] of Object.entries(holdings)) {
-      row(sym, fmtUSD(h.value_usd) + ` (${Number(h.amount).toLocaleString()})`);
+    row('USDC', usd(latest.usdc||0));
+    for(const [sym,hd] of Object.entries(latest.holdings||{})){
+      row(sym, usd(hd.value_usd)+` (${Number(hd.amount).toLocaleString()})`);
     }
     updateHeader();
   }
 
-  // Recent trades
-  const trades = (mem.trades || []).slice(-10).reverse();
-  if (trades.length > 0) {
-    document.getElementById('trades-list').innerHTML = '';
-  }
-  for (const t of trades) {
-    addTradeRow(t.action, t.token, t.from_amount, t.pnl_usd, t.reason?.slice(0, 50) || '', t.ts);
-  }
+  if(mem.cycle_count) S.cycle = mem.cycle_count;
 
-  // Cycle count
-  if (mem.cycle_count) state.cycleNum = mem.cycle_count;
+  // Trades
+  const trades = (mem.trades||[]).slice(-8).reverse();
+  if(trades.length) $('tr-list').innerHTML='';
+  for(const t of trades){
+    addTradeRow(t.action, t.token, t.from_amount, t.pnl_usd||null, (t.reason||'').slice(0,50), t.ts);
+  }
   updateHeader();
 }
 
-// ── WebSocket event handlers ─────────────────────────────────────────────────
-function handleEvent(event, data, ts) {
-  switch(event) {
+// ── EVENT HANDLER ─────────────────────────────────────────────────────────────
+function handle(event, data, time){
+  switch(event){
 
     case 'initialState':
-      bootstrapFromMemory(data);
+      bootstrap(data);
       break;
 
     case 'header':
-      addTermEntry('cycle', '⚡', '<span class="good">ELSA DIP-BUYER AGENT · Base Network · Claude-Powered</span>', ts);
+      card('wake','⚡','ELSA DIP-BUYER AGENT',time,
+        `<p>Base Mainnet · Claude Sonnet 4.6 · x402 Micropayments · <span class="pill pill-warn">DRY RUN</span></p>`);
       break;
 
     case 'wake':
-      state.cycleNum = data.cycleNum;
-      cycleStart = Date.now();
+      S.cycle = data.cycleNum;
+      S.cycleStart = Date.now();
       updateHeader();
-      document.getElementById('cycle-bar').style.width = '0%';
-      document.getElementById('cycle-label').textContent = 'Cycle running...';
-      addTermEntry('cycle', '⏳', `<span class="good">Cycle #${data.cycleNum}</span> <span class="dim">— waking up, running portfolio cycle</span>`, ts);
+      $('cybar').style.width='0%';
+      card('wake','⏳',`Cycle #${data.cycleNum} — Starting`,time,
+        `<p style="color:var(--text2)">Memory read → Analytics → Market scan → Decision</p>`);
       break;
 
     case 'payment':
-      state.sessionPaid = data.sessionTotal;
-      pendingCtx[data.name] = data.context;
+      S.sessionPaid = data.sessionTotal;
+      S.pendingCtx[data.name] = data.context||'';
       updateHeader();
-      addTermEntry('pay', '💸', `Agent spending <span class="cost">${fmtCost(data.cost)}</span> → <span class="tool">${data.name}</span>${data.context ? ` <span class="dim">[${data.context}]</span>` : ''} <span class="dim">· session: ${fmtCost(data.sessionTotal)}</span>`, ts);
-      addPaymentRow('💸', data.name + (data.context ? ` [${data.context}]` : ''), fmtCost(data.cost), '402…', '');
+      // Feed card
+      card('pay','💸',
+        `x402 Payment · <span class="pill pill-cost">${cost(data.cost)}</span>`,
+        time,
+        `<p><span class="pill pill-tool">${data.name}</span>${data.context?` <span style="color:var(--muted)">${data.context}</span>`:''}</p>
+         <p style="margin-top:4px"><span class="status-dot"></span>Signing USDC micropayment · verifying on-chain...</p>`
+      );
+      // Payment panel
+      S.pendingPayCards[data.name] = addPayRow(data.name, data.context||'', cost(data.cost));
       break;
 
-    case 'paymentResult': {
-      const d = data.data || {};
-      const context = pendingCtx[data.name] || data.context || '';
-      delete pendingCtx[data.name];
-      let summary = '';
-      if (data.name === 'get_gas_prices') {
-        const gwei = d.base_fee ?? d.gas_price ?? d.baseFee ?? d.gwei;
-        if (gwei != null) {
-          const cls = gwei < 0.05 ? 'green' : gwei < 0.15 ? 'yellow' : 'red';
-          const label = gwei < 0.05 ? '✓ green-light' : gwei < 0.15 ? '⚠ borderline' : '✗ skip trades';
-          document.getElementById('gas-value').textContent = gwei;
-          document.getElementById('gas-value').className = 'green ' + (gwei < 0.05 ? 'green' : gwei < 0.15 ? 'yellow' : 'red');
-          document.getElementById('gas-label').textContent = label;
-          summary = `Gas: <span class="${cls}">${gwei} gwei · ${label}</span>`;
+    case 'paymentResult':{
+      const d = data.data||{};
+      const ctx = S.pendingCtx[data.name]||'';
+      delete S.pendingCtx[data.name];
+      resolvePayRow(S.pendingPayCards[data.name], true);
+      delete S.pendingPayCards[data.name];
+
+      let bodyHtml='';
+      if(data.name==='get_gas_prices'){
+        const raw = d.stdout ? JSON.parse(d.stdout) : d;
+        const gwei = raw?.gas_prices?.prices?.slow?.gwei ?? raw?.gwei ?? raw?.base_fee;
+        if(gwei!=null){
+          const g=parseFloat(gwei);
+          const cls = g<0.05?'ok':g<0.15?'warn':'bad';
+          const lbl = g<0.05?'✓ Green-light to trade':g<0.15?'⚠ Borderline':'✗ Too expensive — skip trades';
+          $('gas-num').textContent=g; $('gas-num').className=cls;
+          $('gas-lbl').textContent=lbl;
+          bodyHtml=`<p>Gas: <strong style="color:var(--${cls==='ok'?'green':cls==='warn'?'yellow':'red'})">${g} gwei</strong> <span class="pill pill-${cls}">${lbl}</span></p>`;
         }
-      } else if (data.name === 'get_token_price') {
-        const price = d.price_usd ?? d.price;
-        const change = d.change_24h ?? d.price_change_24h;
-        const sym = context || '?';
-        if (data.isWeth) state.wethChange = change;
-        if (price != null) state.prices[sym] = { price, change };
-        const adjChange = (change != null && state.wethChange != null) ? change - state.wethChange : null;
-        updateTokenCard(sym, price, change, adjChange, null);
-        summary = `<span class="tool">${sym}</span>: $${price} <span class="${change >= 0 ? 'good' : 'warn'}">${change >= 0 ? '+' : ''}${change?.toFixed(2)}%</span>`;
-        if (adjChange != null) summary += ` <span class="dim">ETH-adj: ${adjChange >= 0 ? '+' : ''}${adjChange.toFixed(1)}%${adjChange <= -5 ? ' ← REAL DIP' : ''}</span>`;
-      } else if (data.name === 'get_balances' || data.name === 'get_portfolio') {
-        const total = d.total_usd ?? d.total_value_usd;
-        const usdc  = d.usdc ?? d.USDC;
-        if (total != null) {
-          state.portfolio = total;
-          document.getElementById('portfolio-total').textContent = fmtUSD(total);
-          const pnl = total - state.startPortfolio;
-          const pnlEl = document.getElementById('portfolio-pnl');
-          pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtUSD(pnl) + ' since start';
-          pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+      } else if(data.name==='get_token_price'){
+        const raw = d.stdout ? JSON.parse(d.stdout) : d;
+        const price  = raw?.price_usd ?? raw?.price;
+        const change = raw?.change_24h ?? raw?.price_change_24h;
+        const sym = ctx||'TOKEN';
+        if(data.isWeth) S.wethChange=change;
+        const adj = (change!=null&&S.wethChange!=null) ? change-S.wethChange : null;
+        updateToken(sym, price, change, adj, null);
+        const chHtml = change!=null ? `<span class="pill ${change>=0?'pill-up':'pill-dn'}">${change>=0?'+':''}${change?.toFixed(2)}%</span>` : '';
+        const adjHtml = adj!=null ? `<span class="pill ${adj<=-5?'pill-warn':''}" style="${adj>=-5?'color:var(--text2)':''}">${adj>=0?'+':''}${adj.toFixed(1)}% ETH-adj${adj<=-5?' ← REAL DIP':''}</span>` : '';
+        bodyHtml=`<p><strong class="pill pill-tool">${sym}</strong> $${price} ${chHtml} ${adjHtml}</p>`;
+      } else if(data.name==='get_balances'||data.name==='get_portfolio'){
+        const raw = d.stdout ? JSON.parse(d.stdout) : d;
+        const total = raw?.total_usd ?? raw?.total_value_usd ?? raw?.balances?.total_usd;
+        const usdc  = raw?.usdc ?? raw?.USDC ?? raw?.balances?.USDC;
+        if(total!=null){
+          S.portfolio=total;
+          if(!S.startPortfolio) S.startPortfolio=total;
+          $('port-total').textContent=usd(total);
+          const pnl=total-S.startPortfolio;
+          $('port-pnl').textContent=(pnl>=0?'+':'')+usd(pnl)+' since start';
+          $('port-pnl').style.color=pnl>=0?'var(--green)':'var(--red)';
           updateHeader();
         }
-        summary = usdc != null ? `USDC: <span class="good">${fmtUSD(usdc)}</span>  Total: ${fmtUSD(total)}` : JSON.stringify(d).slice(0, 80);
-      } else if (data.name === 'get_swap_quote') {
-        const out = d.to_amount ?? d.estimated_output ?? d.output_amount;
-        summary = `Quote: <span class="good">${out}</span>`;
+        bodyHtml=`<p>USDC: <strong style="color:var(--cyan)">${usd(usdc??0)}</strong> &nbsp;Total: <strong>${usd(total??0)}</strong></p>`;
+      } else if(data.name==='get_swap_quote'){
+        const raw = d.stdout ? JSON.parse(d.stdout) : d;
+        const out = raw?.to_amount ?? raw?.estimated_output ?? raw?.output_amount;
+        bodyHtml=`<p>Quote: <strong style="color:var(--green)">${out}</strong></p>`;
       } else {
-        summary = JSON.stringify(d).slice(0, 100);
+        const raw = d.stdout ? (() => { try{return JSON.parse(d.stdout)}catch{return d} })() : d;
+        bodyHtml=`<p style="color:var(--muted)">${esc(JSON.stringify(raw).slice(0,120))}</p>`;
       }
-      addTermEntry('result', '✅', `<span class="dim">Paid &amp; verified</span> → ${summary}`, ts);
-      // Update the most recent payment row status
-      const rows = document.querySelectorAll('#payments-list .payment-row');
-      if (rows[0]) {
-        const st = rows[0].querySelector('.pay-status');
-        if (st) { st.textContent = '✓ ok'; st.className = 'pay-status ok'; }
-      }
+      card('result','✅',`Verified · <span class="pill pill-tool">${data.name}</span>`,time,bodyHtml);
       break;
     }
 
     case 'paymentError':
-      addTermEntry('error', '❌', `<span class="err">${data.name} failed: ${data.message}</span>`, ts);
-      addPaymentRow('❌', data.name, '—', 'failed', 'err');
+      resolvePayRow(S.pendingPayCards[data.name], false);
+      delete S.pendingPayCards[data.name];
+      card('error','❌',`Payment Failed · ${data.name}`,time,
+        `<p style="color:var(--red)">${esc(data.message)}</p>`);
       break;
 
     case 'analyticsRun':
-      addTermEntry('analytics', '🧮', '<span class="dim">Running analytics...</span> <span style="color:var(--purple)">free · local computation</span>', ts);
+      card('analytics','🧮','Running Analytics',time,
+        `<p style="color:var(--purple)">Free · local computation · no x402 cost</p>
+         <p style="color:var(--muted);margin-top:4px">Reading memory → computing momentum, volatility bands, seasonality, conviction...</p>`);
       break;
 
-    case 'analyticsResult': {
-      if (!data) break;
-      const conv = data.conviction_levels || {};
-      const sigs = data.signals || [];
-      for (const [tok, level] of Object.entries(conv)) {
-        state.convictions[tok] = level;
-        updateTokenCard(tok, null, null, null, level);
-      }
-      const sigHtml = sigs.slice(0, 3).map(s => {
-        const isStrong = s.includes('BUY') || s.includes('PROFIT');
-        return `<span class="${isStrong ? 'good' : 'dim'}">${s.slice(0, 60)}</span>`;
-      }).join('<br>');
-      addTermEntry('analytics', '🎯', `<span style="color:var(--purple)">Analytics complete</span><br>${sigHtml}`, ts);
+    case 'analyticsResult':{
+      if(!data) break;
+      const conv = data.conviction_levels||{};
+      const sigs = data.signals||[];
+      const pos  = data.open_positions||{};
+      const perf = data.performance_summary||{};
+      for(const [tok,lvl] of Object.entries(conv)) updateToken(tok,null,null,null,lvl);
+      const sigItems = sigs.slice(0,6).map(s=>{
+        const isBuy = /BUY|PROFIT|STRONG/i.test(s);
+        const isWarn= /STOP|WARN|⚠/i.test(s);
+        return `<div class="sig-item ${isBuy?'buy':isWarn?'warn':''}"><div class="sig-dot"></div><div class="sig-txt">${esc(s.slice(0,55))}</div></div>`;
+      }).join('');
+      const posItems = Object.entries(pos).map(([tok,p])=>{
+        const pnl=p.pnl_pct;
+        return `<p>${tok}: <span style="color:var(--${pnl>=0?'green':'red'})">${pnl>=0?'+':''}${pnl}%</span> · ${p.days_held}d · <span style="color:var(--muted)">${p.trajectory}</span></p>`;
+      }).join('');
+      const netPnl=perf.net_pnl_after_costs;
+      const netStr=netPnl!=null?`<p style="margin-top:6px">Net P&L after costs: <strong style="color:var(--${netPnl>=0?'green':'red'})">${netPnl>=0?'+':''}$${netPnl}</strong></p>`:'';
+      card('analytics','🎯','Analytics Complete',time,
+        `${sigs.length?`<div class="sig-grid">${sigItems}</div>`:'<p style="color:var(--muted)">📊 LEARNING — insufficient history for signals</p>'}
+         ${posItems}${netStr}`);
       break;
     }
 
     case 'memoryRead':
-      addTermEntry('memory', '📚', '<span style="color:var(--purple)">Reading memory...</span>', ts);
+      card('memory','📚','Reading Memory',time,`<p style="color:var(--muted)">Loading trade history, price observations, agent notes...</p>`);
       break;
 
     case 'memoryWrite':
-      addTermEntry('memory', '💾', '<span style="color:var(--purple)">Writing memory...</span>', ts);
+      card('memory','💾','Writing Memory',time,`<p style="color:var(--muted)">Persisting cycle data, price observations, trade records...</p>`);
       break;
 
     case 'memoryDone':
-      addTermEntry('memory', data.wasWrite ? '✓' : '✓', `<span class="dim">${data.wasWrite ? 'Memory saved — cycle recorded.' : 'Memory loaded — history ready.'}</span>`, ts);
+      // subtle — just update the last memory card's body
       break;
 
-    case 'agentText': {
-      const text = (data.text || '').trim();
-      if (!text) break;
-      const lines = text.split('\n').map(line => {
-        if (/\$[0-9]|gwei|skip.*save|saving|too expensive|not worth|preserve capital/i.test(line)) {
-          return `<span class="cost">${escHtml(line)}</span>`;
-        }
-        if (/buying|selling|executing|rotating|rebalancing|taking profit|cutting loss/i.test(line)) {
-          return `<strong style="color:var(--text)">${escHtml(line)}</strong>`;
-        }
-        return `<span>${escHtml(line)}</span>`;
-      }).join('<br>');
-      addTermEntry('agent', '🤖', `<span class="dim">Claude:</span><br>${lines}`, ts);
+    case 'agentText':
+      if((data.text||'').trim()) agentCard(data.text, time);
       break;
-    }
 
-    case 'tradeExecuted': {
-      const { fromAmount, fromToken, toAmount, toToken, txHash } = data;
-      addTermEntry('trade', '🔄', `
-        <div class="term-trade-box">
-          <div class="trow"><span class="tamt">${fromAmount} ${fromToken}</span><span class="tarrow"> → </span><span class="tamt">${toAmount} ${toToken}</span></div>
-          <div style="margin-top:4px;font-size:11px;color:var(--muted)">TxHash: <a class="ttxlink" href="https://basescan.org/tx/${txHash}" target="_blank">${txHash?.slice(0, 20)}...</a></div>
-        </div>`, ts);
-      addTradeRow('buy', toToken, fromAmount, null, 'Live swap executed', ts);
-      document.getElementById('mode-pill').className = 'hpill live';
-      document.getElementById('mode-pill').textContent = 'LIVE';
+    case 'tradeExecuted':{
+      const {fromAmount,fromToken,toAmount,toToken,txHash}=data;
+      card('trade','🔄','SWAP EXECUTED ON BASE',time,
+        `<div class="trade-box">
+          <span class="trade-from">${esc(fromAmount)} ${esc(fromToken)}</span>
+          <span class="trade-arrow">→</span>
+          <span class="trade-to">${esc(toAmount)} ${esc(toToken)}</span>
+        </div>
+        <a class="tx-link" href="https://basescan.org/tx/${esc(txHash)}" target="_blank">🔗 View on BaseScan → ${esc(txHash?.slice(0,22))}...</a>`);
+      addTradeRow('buy',toToken,fromAmount,null,'Live swap executed',time);
+      $('mode-badge').textContent='LIVE';
+      $('mode-badge').className='badge badge-live';
       break;
     }
 
     case 'dryRunResult':
-      addTermEntry('dryrun', '🔬', `<span class="warn">DRY RUN</span> — Would have swapped: <span class="good">${data.fromAmount}</span> → <span class="good">${data.toAmount}</span>`, ts);
-      addTradeRow('buy', '?', data.fromAmount, null, 'Dry run simulation', ts);
+      card('dry','🔬','Simulated Swap (DRY RUN)',time,
+        `<div class="trade-box" style="border-color:var(--yellow2);background:#181000">
+          <span class="trade-from" style="color:var(--yellow)">${esc(data.fromAmount)}</span>
+          <span class="trade-arrow">→</span>
+          <span class="trade-to" style="color:var(--yellow)">${esc(data.toAmount)}</span>
+        </div>
+        <p style="color:var(--muted);margin-top:6px;font-size:11px">Swap not executed · DRY_RUN=true · logged to memory</p>`);
+      addTradeRow('buy','SIM',data.fromAmount,null,'Dry-run simulation',time);
       break;
 
-    case 'cycleEnd':
-      state.sessionPaid = data.sessionPaid;
-      if (data.currentPortfolio > 0) {
-        state.portfolio = data.currentPortfolio;
-        if (state.startPortfolio === 0) state.startPortfolio = data.startPortfolio;
-      }
-      cycleStart = Date.now();
-      document.getElementById('cycle-bar').style.width = '0%';
-      document.getElementById('cycle-label').textContent = `Next cycle in ${Math.round(cycleInterval/1000)}s`;
+    case 'cycleEnd':{
+      S.sessionPaid = data.sessionPaid;
+      if(data.currentPortfolio>0) S.portfolio=data.currentPortfolio;
+      S.cycleStart=Date.now();
+      $('cybar').style.width='0%';
       updateHeader();
       const delta = data.currentPortfolio - data.startPortfolio;
       const net   = delta - data.cyclePaid;
-      addTermEntry('cycle', '📊', `
-        <span class="dim">Cycle #${data.cycleNum} complete</span>
-        <span class="dim"> · x402: </span><span class="cost">${fmtCost(data.cyclePaid)}</span>
-        <span class="dim"> · Portfolio: </span><span class="${delta >= 0 ? 'good' : 'err'}">${delta >= 0 ? '+' : ''}${fmtUSD(delta)}</span>
-        <span class="dim"> · Net: </span><span class="${net >= 0 ? 'good' : 'err'}">${net >= 0 ? '+' : ''}${fmtUSD(net)}</span>`, ts);
+      card('end','📊',`Cycle #${data.cycleNum} Complete`,time,
+        `<div class="cysum">
+          <div class="cystat">
+            <div class="csv" style="color:var(--yellow)">${cost(data.cyclePaid)}</div>
+            <div class="csk">x402 Spent</div>
+          </div>
+          <div class="cystat">
+            <div class="csv" style="color:var(--${delta>=0?'green':'red'})">${delta>=0?'+':''}${usd(delta)}</div>
+            <div class="csk">Portfolio Δ</div>
+          </div>
+          <div class="cystat">
+            <div class="csv" style="color:var(--${net>=0?'green':'red'})">${net>=0?'+':''}${usd(net)}</div>
+            <div class="csk">Net P&L</div>
+          </div>
+        </div>`);
+      // Update stats
+      $('s-x402').textContent = cost(data.sessionPaid);
       break;
+    }
 
     case 'error':
-      addTermEntry('error', '💥', `<span class="err">Fatal: ${escHtml(data.message)}</span>`, ts);
+      card('error','💥','Fatal Error',time,`<p style="color:var(--red)">${esc(data.message)}</p>`);
       break;
   }
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── WebSocket connection ──────────────────────────────────────────────────────
-function connect() {
+// ── WEBSOCKET ─────────────────────────────────────────────────────────────────
+function connect(){
   const ws = new WebSocket(`ws://${location.host}`);
-
-  ws.onopen = () => {
-    document.getElementById('connecting').classList.add('hidden');
-    document.getElementById('hstatus-dot').style.background = 'var(--green)';
-    document.getElementById('hstatus-dot').style.boxShadow = '0 0 8px var(--green)';
+  ws.onopen = ()=>{
+    $('overlay').classList.add('hidden');
   };
-
-  ws.onmessage = (e) => {
-    try {
-      const { event, data, ts } = JSON.parse(e.data);
-      handleEvent(event, data, ts);
-    } catch {}
+  ws.onmessage = e => {
+    try{ const {event,data,ts:time}=JSON.parse(e.data); handle(event,data,time); }catch{}
   };
-
-  ws.onclose = () => {
-    document.getElementById('connecting').classList.remove('hidden');
-    document.getElementById('connecting').querySelector('.sub').textContent = 'Reconnecting...';
-    document.getElementById('hstatus-dot').style.background = 'var(--red)';
-    document.getElementById('hstatus-dot').style.boxShadow = '0 0 8px var(--red)';
-    setTimeout(connect, 2000);
+  ws.onclose = ()=>{
+    $('overlay').classList.remove('hidden');
+    $('overlay').querySelector('.ov-sub').textContent='Reconnecting...';
+    setTimeout(connect,2000);
   };
-
-  ws.onerror = () => ws.close();
+  ws.onerror = ()=>ws.close();
 }
-
 connect();
 </script>
 </body>

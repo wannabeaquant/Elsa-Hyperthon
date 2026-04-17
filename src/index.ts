@@ -18,6 +18,7 @@ requireEnv("CLAUDE_CODE_OAUTH_TOKEN"); // validated early; agent passes it to qu
 const USE_MAINNET = process.env.USE_MAINNET !== "false";
 const DRY_RUN = process.env.DRY_RUN !== "false";
 const INTERVAL_MS = parseInt(process.env.INTERVAL_MS ?? "60000", 10);
+const MAX_CYCLES = parseInt(process.env.MAX_CYCLES ?? "0", 10); // 0 = unlimited
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -36,12 +37,20 @@ async function main() {
   }
 
   await runCycle();
+  if (MAX_CYCLES === 1) return;
   setInterval(runCycle, INTERVAL_MS);
 }
+
+let _completedCycles = 0;
 
 async function runCycle() {
   try {
     await runAgent(WALLET_ADDRESS, DRY_RUN);
+    _completedCycles++;
+    if (MAX_CYCLES > 0 && _completedCycles >= MAX_CYCLES) {
+      console.log(`\n  ✅ Completed ${MAX_CYCLES} cycles. Shutting down.\n`);
+      process.exit(0);
+    }
   } catch (err: unknown) {
     display.error(err instanceof Error ? err.message : String(err));
   }
