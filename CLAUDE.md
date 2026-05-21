@@ -501,3 +501,19 @@ Show tx hash → BaseScan link in terminal → confirmed on-chain.
 **Last Updated:** April 17, 2026
 **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6`)
 **Status:** Production-ready for hackathon demo. Analytics-first conviction framework live. Data-sufficiency gates in analytics.ts prevent thin-sample signals from appearing statistically validated.
+
+---
+
+## Git & Commits
+- Format: `<type>(<scope>): <short imperative description>`
+  - feat(agent): ... | fix(helpers): ... | perf(analytics): ...
+- Every self-contained working change = one commit. Push to origin main after every session.
+- GitHub: https://github.com/wannabeaquant/DegenAI
+
+## Session Memory
+- Read MEMORY.md at session start if it exists.
+- On "session end": write summary to MEMORY.md.
+
+## Error Log
+- Read ERRORS.md before suggesting approaches.
+- Log failures after 2+ attempts to ERRORS.md.
